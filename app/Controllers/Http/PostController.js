@@ -4,16 +4,15 @@ const Post = use("App/Models/Post")
 const Helpers = use('Helpers')
 const Drive = use('Drive')
 const Like = use('App/models/Like')
+const Database = use('Database')
 
 class PostController {
     async create({request, response,auth}){
         //Authorizing the user 
-        try{
             const user = await auth.getUser()
-        }catch(e){
+        if(!user){
             return response.json({
-                massage: "Missing or invalid token",
-                error: e
+                massage: "Missing or invalid token"
             })
         }
 
@@ -30,7 +29,7 @@ class PostController {
         if(request.input('content')){post.content = request.input('content')}
         else{post.content = null}
 
-        post.keys = request.input('keys')? request.input('keys').tString():null
+        post.keys = request.input('keys')? request.input('keys').toString():null
 
         if(request.file('post')){
 
@@ -89,33 +88,30 @@ class PostController {
     }*/ 
 
     async show_all({request, response , auth}){
-        const likes = await Like.query().where("user_id",7).fetch()
-        const j = await Like.query().where("user_id",7).count()
-        const liked_posts_id = []
-        for(let i=0;i<j;i++){
-            liked_posts_id.push(likes[i]["post_id"])
+        const likes = await Database.from('likes').where('user_id',await auth.getUser().id)
+        const likes_count = await Like.query().where('user_id',await auth.getUser().id).count()
+        const posts = await Database.select("*").from('posts')
+        const liked_posts_ids = []
+        for(let i=0;i<likes_count[0].count;i++){
+            liked_posts_ids.push(likes[i]['post_id'])
         }
-        const liked_posts = Post.query().whereIn("id",liked_posts_id).fetch()
-        const posts = Post.query().whereNotIn('id',liked_posts_id).fetch()
-        return response.json({
-            likedPosts: liked_posts,
-            posts: posts
-        })
-            
+        for(let i=0;i<liked_posts_ids.length;i++){
+            if(liked_posts_ids.includes(posts[i].id)){
+                posts[i]['is_liked'] = true
+            }
+        }   
     }
-    async edit({request, response, params: id}){
+    async edit({request, response, params, auth}){
           //Authorizing the user 
-          try{
-            const user = await auth.getUser()
-        }catch(e){
+        const user = await auth.getUser()
+        if(!user){
             return response.json({
-                massage: "Missing or invalid token",
-                error: e
+                massage: "Missing or invalid token"
             })
         }
 
         //Creating the post
-        const post = await Post.findOrFail(id)
+        const post = await Post.findOrFail(params.id)
 
         if(request.input('title')){post.title = request.input('title')}
         else{post.title = null}
@@ -123,7 +119,7 @@ class PostController {
         if(request.input('content')){post.content = request.input('content')}
         else{post.content = null}
 
-        post.keys = request.input('keys')? request.input('keys').tString():null
+        post.keys = request.input('keys')? request.input('keys').toString():null
 
         if(request.file('post')){
 
@@ -163,21 +159,28 @@ class PostController {
         try{
             await post.save()
             return response.json({
-                massage: "Post created successfully",
+                massage: "Post edited successfully",
                 data: post
             })
         }catch(e){
             await post.delete()
             return response.json({
-                massage: "Cannot create post",
+                massage: "Cannot edit post",
                 error: e
             })
         }
         
     
     }
-    async delete({response, params: id}){
-        const post = await Post.findOrFail(id)
+    async delete({response, params, auth}){
+        try{
+            await auth.check()
+        }catch(e){
+            return response.json({
+                massage: "Missing or invalid token"
+            })
+        }
+        const post = await Post.findOrFail(params.id)
         try{
             post.delete()
             return response.json({
@@ -188,16 +191,6 @@ class PostController {
                 massage: e
             })
         }
-    }
-
-
-
-
-    async test(){
-        const like = await new Like 
-        like['user_id'] = 7
-        like["post_id"] = 1
-        like.save()
     }
 }
 
