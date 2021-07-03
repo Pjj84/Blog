@@ -89,14 +89,15 @@ class PostController {
     }*/ 
 
     async show_all({request, response , auth}){
-        const likes = await Like.query().where("user_id",await auth.getUser().id).fetch()
+        const likes = await Like.query().where("user_id",7).fetch()
+        const j = await Like.query().where("user_id",7).count()
         const liked_posts_id = []
-        for(let i=0;i<likes.length;i++){
-            like_id.push(liked_posts_id[i]["post_id"])
+        for(let i=0;i<j;i++){
+            liked_posts_id.push(likes[i]["post_id"])
         }
         const liked_posts = Post.query().whereIn("id",liked_posts_id).fetch()
-        const posts = Post.query().whereNotIn('id',liked_posts_id)
-        return responses.json({
+        const posts = Post.query().whereNotIn('id',liked_posts_id).fetch()
+        return response.json({
             likedPosts: liked_posts,
             posts: posts
         })
@@ -190,6 +191,14 @@ class PostController {
     }
 
 
+
+
+    async test(){
+        const like = await new Like 
+        like['user_id'] = 7
+        like["post_id"] = 1
+        like.save()
+    }
 }
 
 module.exports = PostController
