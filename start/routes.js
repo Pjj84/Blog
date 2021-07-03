@@ -22,17 +22,21 @@ const Drive = use('Drive');
 
 Route.on('/').render('welcome');
 
-Route.post('/register','UserController.create')
+Route.post('/register','UserController.create').as('register')
 
 Route.post("/login","UserController.store").as("login")
 
-Route.post('/logout','UserController.logout')
+Route.post('/logout','UserController.logout').as("logout")
 
 Route.post("/post",'PostController.create').as("post")
+
+Route.get('/show',"PostController.show_all").as("show_all")
+
+Route.post("/edit/:id","PostController.edit").as("edit")
+
+Route.post("/delete/:id","PostController.delete").as("delete")
 //--------------------------------------------------------------------------------------------------------------
-//These routes below are just scracthing
+//These routes below are just scecthing, they may not work properly
 Route.on("/test").render("test");
 
-Route.get('/file','PostController.show').as('file')
-
-Route.get('/page',"PostController.show_all")
+Route.get('/testlike','PostController.test')
