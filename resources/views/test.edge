@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<head></head>
+
+<body>
+    <!-- file input -->
+    <form method="post" action="{{route('post')}}" enctype="multipart/form-data">
+        <input type="file" name="post" />
+        <input type="submit" />
+    </form>
+    <!-- shoing the previously uloaded file -->
+    <img src="{{route('file')}}" alt="file" />
+</body>
+</html>
