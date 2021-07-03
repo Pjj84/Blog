@@ -23,21 +23,35 @@ class UserController {
     }
     async store({request, response, auth}){
         try{
+            await auth.getUser()
+            return response.json({
+                massage: "You are already signed in"
+            })
+        }catch(error){
+        try{
             const token = await auth.attempt(request.input('username'), request.input('password'))
-            return atob(token)
             return response.json({
                 massage: 'logedin',
-                data: token,
-                decoded: atob(token)
+                data: token
+                
             })
         }catch(e){
+            token.delete()
             return response.json({
-                massage: e,
-                data: decode_base64(token)
+                massage: e
+                
             })
         }
     }
+    }
     async logout({response, auth}){
+        try{
+            await auth.check()
+        }catch(e){
+            return response.json({
+                massage: "Missing or invalid token"
+            })
+        }
         const token = auth.getAuthHeader()
         try{
             await auth.revokeTokens([token])
