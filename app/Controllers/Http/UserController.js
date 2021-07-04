@@ -4,7 +4,7 @@ class UserController {
     async create({ request, response}){
         const user = new User()
     if(request.input('email') && request.input('password') && request.input('email')){
-        user.username = request.input('username')
+        user.fullname = request.input('fullname')
         user.password = request.input('password')
         user.email = request.input('email')
         user['is_admin'] = false

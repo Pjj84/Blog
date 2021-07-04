@@ -10,27 +10,23 @@ class PostController {
     async create({request, response,auth}){
         //Authorizing the user 
             const user = await auth.getUser()
-        if(!user){
-            response.unauthorized("Missing or invalid token")
-        }
 
         //Creating the post
         const post = await new Post
 
-        post['writer_id'] =  user.id
+        post['user_id'] =  user.id
 
-        post['writer_name'] = user.username
+        post['user_fullname'] = user.fullname
 
         if(request.input('title')){post.title = request.input('title')}
-        else{post.title = null}
+        else{return response.noContent("Title cannot be empty")}
 
         if(request.input('content')){post.content = request.input('content')}
-        else{post.content = null}
+        else{return response.noContent("Content cannot be null")}
 
         post.keys = request.input('keys')? request.input('keys').toString():null
 
         if(request.file('post')){
-
         const pic = request.file('post', { //Getting the image from request
             types: ['image'],
             size: '2mb'
@@ -61,7 +57,6 @@ class PostController {
         }else{
             post['is_approved'] = false
         }
-
         //Returning the result 
         try{
             await post.save()
@@ -85,7 +80,7 @@ class PostController {
         return await Drive.get(`uploads/${pic.image}`) 
     }*/ 
 
-    async show_all({request, response , auth}){
+    async showAll({request, response , auth}){
         const likes = await Database.from('likes').where('user_id',await auth.getUser().id)
         const likes_count = await Like.query().where('user_id',await auth.getUser().id).count()
         const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
@@ -113,10 +108,10 @@ class PostController {
         const post = await Post.findOrFail(params.id)
 
         if(request.input('title')){post.title = request.input('title')}
-        else{post.title = null}
+        else{return response.noContent("Title cannot be empty")}
 
         if(request.input('content')){post.content = request.input('content')}
-        else{post.content = null}
+        else{return response.noContent("Content cannot be empty")}
 
         post.keys = request.input('keys')? request.input('keys').toString():null
 
@@ -186,6 +181,14 @@ class PostController {
                 massage: "Error deleting post",
                 error: e
             })
+        }
+    }
+    async showControlled({request, response, auth}){
+        const user = await auth.getUser()
+        if(user['is_admin']){
+            return response.status(200).json(await User.query().with('posts').fetch())
+        }else{
+            return response.status(200).json(await Post.query().where('user_id',user.id).fetch())
         }
     }
 }
