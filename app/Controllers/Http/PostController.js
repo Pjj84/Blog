@@ -186,9 +186,21 @@ class PostController {
     async showControlled({request, response, auth}){
         const user = await auth.getUser()
         if(user['is_admin']){
-            return response.status(200).json(await User.query().with('posts').fetch())
+            return response.status(200).json(await Post.all())
         }else{
             return response.status(200).json(await Post.query().where('user_id',user.id).fetch())
+        }
+    }
+    async like({params}){
+        const post = await Post.findOrFail(params.id)
+        post.likes++;
+        try{
+        post.save()
+        }catch(e){
+            return response.status(500).json({
+                massage: 'Error liking',
+                error: e
+            })
         }
     }
 }
