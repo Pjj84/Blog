@@ -25,7 +25,7 @@ class UserController {
         try{
             await auth.getUser()
             return response.json({
-                massage: "You are already signed in"
+                massage: "You are already loged in"
             })
         }catch(error){
         try{
