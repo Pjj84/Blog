@@ -88,7 +88,7 @@ module.exports = {
     serializer: 'lucid',
     model: 'App/Models/User',
     scheme: 'api',
-    uid: 'username',
+    uid: 'email',
     password: 'password'
   }
 }

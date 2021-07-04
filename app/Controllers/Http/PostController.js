@@ -11,9 +11,7 @@ class PostController {
         //Authorizing the user 
             const user = await auth.getUser()
         if(!user){
-            return response.json({
-                massage: "Missing or invalid token"
-            })
+            response.unauthorized("Missing or invalid token")
         }
 
         //Creating the post
@@ -33,22 +31,22 @@ class PostController {
 
         if(request.file('post')){
 
-        const profilePic = request.file('post', { //Getting the image from request
+        const pic = request.file('post', { //Getting the image from request
             types: ['image'],
             size: '2mb'
         })
 
-        const image_name = `${new Date().getTime()}.${profilePic.subtype}` //Generating the image's name
+        const image_name = `${new Date().getTime()}.${pic.subtype}` //Generating the image's name
 
-        await profilePic.move(Helpers.tmpPath('uploads'), { //Moving the image to a specific directory
+        await pic.move(Helpers.tmpPath('uploads'), { //Moving the image to a specific directory
             name: image_name,
             overwrite: true
          })
 
         
-        if (!profilePic.moved()) { //Checking for errors
-            resopnse.json({
-                massage: profilePic.error()
+        if (!pic.moved()) { //Checking for errors
+            resopnse.status(500).json({
+                massage: pic.error()
             }) 
         }
 
@@ -67,14 +65,14 @@ class PostController {
         //Returning the result 
         try{
             await post.save()
-            return response.json({
+            return response.status(201).json({
                 massage: "Post created successfully",
                 data: post
             })
         }catch(e){
             post.delete()
-            return response.json({
-                massage: "Cannot create post",
+            return response.status(500).json({
+                massage: "Error creating post",
                 error: e
             })
         }
@@ -90,7 +88,7 @@ class PostController {
     async show_all({request, response , auth}){
         const likes = await Database.from('likes').where('user_id',await auth.getUser().id)
         const likes_count = await Like.query().where('user_id',await auth.getUser().id).count()
-        const posts = await Database.select("*").from('posts')
+        const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
         const liked_posts_ids = []
         for(let i=0;i<likes_count[0].count;i++){
             liked_posts_ids.push(likes[i]['post_id'])
@@ -100,14 +98,15 @@ class PostController {
                 posts[i]['is_liked'] = true
             }
         }   
+        resopnse.status(200).json({
+            posts: posts
+        })
     }
     async edit({request, response, params, auth}){
           //Authorizing the user 
         const user = await auth.getUser()
         if(!user){
-            return response.json({
-                massage: "Missing or invalid token"
-            })
+            return response.unauthorized("Missing or invalid token")
         }
 
         //Creating the post
@@ -137,8 +136,8 @@ class PostController {
 
         
         if (!pic.moved()) { //Checking for errors
-            resopnse.json({
-                massage: "Cannot save image",
+            resopnse.status(500).json({
+                massage: "Error saving image",
                 error: profilePic.error()
             }) 
         }
@@ -158,14 +157,14 @@ class PostController {
         //Returning the result 
         try{
             await post.save()
-            return response.json({
+            response.status(201).json({
                 massage: "Post edited successfully",
                 data: post
             })
         }catch(e){
             await post.delete()
-            return response.json({
-                massage: "Cannot edit post",
+            return response.status(500).json({
+                massage: "Error editing post",
                 error: e
             })
         }
@@ -176,19 +175,16 @@ class PostController {
         try{
             await auth.check()
         }catch(e){
-            return response.json({
-                massage: "Missing or invalid token"
-            })
+            return response.unauthorized("Missing or invalid token")
         }
         const post = await Post.findOrFail(params.id)
         try{
             post.delete()
-            return response.json({
-                massage: "Deleted succefully!"
-            })
+            return response.ok("Deleted succefully")
         }catch(e){
             return response.json({
-                massage: e
+                massage: "Error deleting post",
+                error: e
             })
         }
     }
