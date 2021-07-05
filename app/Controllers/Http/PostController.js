@@ -9,7 +9,7 @@ const Database = use('Database')
 class PostController {
     async create({request, response,auth}){
         //Authorizing the user 
-            const user = await auth.getUser()
+        const user = await auth.getUser()
 
         //Creating the post
         const post = await new Post
@@ -191,9 +191,13 @@ class PostController {
             return response.status(200).json(await Post.query().where('user_id',user.id).fetch())
         }
     }
-    async like({params}){
+    async like({params, auth}){
         const post = await Post.findOrFail(params.id)
         post.likes++;
+        const like = new Like
+        like['user_id'] = await auth.getUser().id 
+        like["posr_id"] = post.id
+        like.save()
         try{
         post.save()
         }catch(e){

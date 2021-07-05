@@ -7,6 +7,7 @@ class UserSchema extends Schema {
   up () {
     this.alter('users', (table) => {
       table.boolean("is_admin")
+      table.string("profile_pic")
     })
   }
 

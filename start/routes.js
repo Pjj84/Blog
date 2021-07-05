@@ -30,13 +30,23 @@ Route.post('/logout','UserController.logout').as("logout")
 
 Route.post("/post",'PostController.create').as("post")
 
-Route.get('/show',"PostController.showAll").as("allposts")
+Route.get('/post/show',"PostController.showAll").as("allposts")
 
-Route.post("/edit/:id","PostController.edit").as("edit")
+Route.post("/post/edit/:id","PostController.edit").as("editPost")
 
-Route.post("/delete/:id","PostController.delete").as("delete")
+Route.post("/post/delete/:id","PostController.delete").as("deletePost")
 
 Route.get("/myposts","PostController.showControlled").as("myposts")
+
+Route.post("/like","PostController.like").as("like")
+
+Route.post("/comment/:post_id/:comment_id?","CommentController.create").as("comment")
+
+Route.post("/comment/edit/:id","CommentController.edit").as("editComment")
+
+Route.post("/comment/delete/:id","CommentController.delete").as("deleteComment")
+
+Route.get("/comment/show","CommentController.show").as("showComment")
 //--------------------------------------------------------------------------------------------------------------
 //These routes below are just scecthing, they may not work properly
 Route.on("/test").render("test");
