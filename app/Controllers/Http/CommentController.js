@@ -5,13 +5,14 @@ const Helpers = use('Helpers')
 const Drive = use('Drive')
 const Like = use('App/models/Like')
 const Database = use('Database')
-const Comments= use('App/Models/Comment')
+const Comment = use('App/Models/Comment')
 
 class CommentController {
     async create({request, response, auth, params}){
         const comment = new Comment
+        const user = await auth.getUser()
         comment['post_id'] = params['post_id'] //The id of the post
-        comment['user_id'] = await auth.getUser().id
+        comment['user_id'] = user.id
         comment.text = request.input('text')
         comment['reply_to'] = params['comment_id'] || null //The id of the comment
         try{
@@ -28,8 +29,10 @@ class CommentController {
         }
     }
     async edit({request, response, params}){
+        return 1
         const comment = Comment.findOrFail(params.id)
         comment.text = request.input('text')
+        return comment.text
         try{
             comment.save()
             return response.status(200).json({
