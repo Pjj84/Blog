@@ -81,8 +81,9 @@ class PostController {
     }*/ 
 
     async showAll({request, response , auth}){
-        const likes = await Database.from('likes').where('user_id',await auth.getUser().id)
-        const likes_count = await Like.query().where('user_id',await auth.getUser().id).count()
+        const user = await auth.getUser()
+        const likes = await Database.from('likes').where('user_id',user.id)
+        const likes_count = await Like.query().where('user_id',user.id).count()
         const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
         const liked_posts_ids = []
         for(let i=0;i<likes_count[0].count;i++){
@@ -93,7 +94,7 @@ class PostController {
                 posts[i]['is_liked'] = true
             }
         }   
-        resopnse.status(200).json({
+        response.status(200).json({
             posts: posts
         })
     }
