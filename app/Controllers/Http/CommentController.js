@@ -29,10 +29,8 @@ class CommentController {
         }
     }
     async edit({request, response, params}){
-        return 1
-        const comment = Comment.findOrFail(params.id)
+        const comment = await Comment.find(params.id)
         comment.text = request.input('text')
-        return comment.text
         try{
             comment.save()
             return response.status(200).json({
@@ -46,8 +44,8 @@ class CommentController {
             })
         }
     }
-    async delete({params}){
-        const comment = Comment.findOrFail(params.id)
+    async delete({params, response}){
+        const comment = await Comment.findOrFail(params.id)
         try{
            comment.delete()
            return response.ok("Comment deleted succesfully")
@@ -59,9 +57,9 @@ class CommentController {
         }
 
     }
-    async show({params}){
+    async show({params, response}){
         try{
-        const comment = Comment.query().where("post_id",params.id).fetch()
+        const comment = await Comment.query().where("post_id",params.id).fetch()
         return response.status(200).json(comment)
         }catch(e){
             return response.status(500).json({

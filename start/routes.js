@@ -46,7 +46,7 @@ Route.post("/editcomment/:id","CommentController.edit").as("editComment")
 
 Route.post("/deletecomment/:id","CommentController.delete").as("deleteComment")
 
-Route.get("/showcomments","CommentController.show").as("showComment")
+Route.get("/showcomments/:id","CommentController.show").as("showComment")
 //--------------------------------------------------------------------------------------------------------------
 //These routes below are just scecthing, they may not work properly
 Route.on("/test").render("test");

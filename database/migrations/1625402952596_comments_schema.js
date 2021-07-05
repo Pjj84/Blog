@@ -13,6 +13,7 @@ class CommentsSchema extends Schema {
       table.foreign("post_id").references("posts.id").onDelete("CASCADE")
       table.text("text").notNullable()
       table.integer("reply_to")
+      table.foreign("reply_to").references("comments.id").onDelete("CASCADE")
       table.timestamps()
     })
   }
