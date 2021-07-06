@@ -1,5 +1,6 @@
 'use strict'
 const User = use("App/Models/User");
+const Helpers = use("Helpers");
 class UserController {
     async create({ request, response}){
         const user = new User()
@@ -24,9 +25,9 @@ class UserController {
                     error: profilePic.error()
                 }) 
             }
-            post.image = await image_name //Finally saving the image's name in the post instance
+            user['profile_pic'] = image_name //Finally saving the image's name in the post instance
             }
-            else{post.image = null}
+            else{user['profile_pic'] = null}
         await user.save();
         response.status(200).json({
             massage: "user created succefully",
@@ -74,6 +75,10 @@ class UserController {
             response.unauthorized("You are not loged in")
         }
 
+    }
+    async profilePic({params, response}){
+        const user = await User.findOrFail(params.id)
+        return response.download(Helpers.tmpPath(`uploads/${user['profile_pic']}`))
     }
 }
 
