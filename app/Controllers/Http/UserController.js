@@ -8,14 +8,17 @@ class UserController {
         user.fullname = request.input('fullname')
         user.password = request.input('password')
         user.email = request.input('email')
+        user.postsCount = 0
         user['is_admin'] = false
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],
                 size: '2mb'
             })
-            const image_name = `${new Date().getTime()}.${pic.subtype}` //Generating the image's name
-            await pic.move(Helpers.tmpPath('uploads'), { //Moving the image to a specific directory
+            const time = new Date()
+            const image_name = `${time.getFullYear()}-${time.getMonth()}/${new Date().getTime()}.${pic.subtype}` //Generating the image's name
+            //Generating the image's name
+            await pic.move(Helpers.tmpPath('profiles'), { //Moving the image to a specific directory
                 name: image_name,
                 overwrite: true
              })        
@@ -78,7 +81,7 @@ class UserController {
     }
     async profilePic({params, response}){
         const user = await User.findOrFail(params.id)
-        return response.download(Helpers.tmpPath(`uploads/${user['profile_pic']}`))
+        return response.status(200).download(Helpers.tmpPath(`profiles/${user['profile_pic']}`))
     }
 }
 

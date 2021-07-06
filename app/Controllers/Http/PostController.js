@@ -10,13 +10,15 @@ class PostController {
     async create({request, response,auth}){
         //Authorizing the user 
         const user = await auth.getUser()
-
+        user.postsCount = user.postsCount + 1
         //Creating the post
         const post = await new Post
 
         post['user_id'] =  user.id
 
         post['user_fullname'] = user.fullname
+
+        post.description = request.input('description') || null
 
         if(request.input('title')){post.title = request.input('title')}
         else{return response.noContent("Title cannot be empty")}
@@ -31,10 +33,10 @@ class PostController {
             types: ['image'],
             size: '2mb'
         })
+        const time = new Date()
+        const image_name = `${time.getFullYear()}-${time.getMonth()}/${new Date().getTime()}.${pic.subtype}` //Generating the image's name
 
-        const image_name = `${new Date().getTime()}.${pic.subtype}` //Generating the image's name
-
-        await pic.move(Helpers.tmpPath('uploads'), { //Moving the image to a specific directory
+        await pic.move(Helpers.tmpPath('posts'), { //Moving the image to a specific directory
             name: image_name,
             overwrite: true
          })
@@ -58,9 +60,11 @@ class PostController {
         }else{
             post['is_approved'] = false
         }
+        
         //Returning the result 
         try{
             await post.save()
+            await user.save()
             return response.status(201).json({
                 massage: "Post created successfully",
                 data: post
@@ -116,7 +120,7 @@ class PostController {
             return response.unauthorized("Missing or invalid token")
         }
 
-        //Creating the post
+        //Editing the post
         const post = await Post.findOrFail(params.id)
 
         if(request.input('title')){post.title = request.input('title')}
@@ -124,6 +128,8 @@ class PostController {
 
         if(request.input('content')){post.content = request.input('content')}
         else{return response.noContent("Content cannot be empty")}
+
+        post.description = request.input('description')
 
         post.keys = request.input('keys')? request.input('keys').toString():null
 
@@ -134,9 +140,10 @@ class PostController {
             size: '2mb'
         })
 
-        const image_name = `${new Date().getTime()}.${pic.subtype}` //Generating the image's name
+        const time = new Date()
+        const image_name = `${time.getFullYear()}-${time.getMonth()}/${new Date().getTime()}.${pic.subtype}` //Generating the image's name
 
-        await pic.move(Helpers.tmpPath('uploads'), { //Moving the image to a specific directory
+        await pic.move(Helpers.tmpPath('posts'), { //Moving the image to a specific directory
             name: image_name,
             overwrite: true
          })
@@ -179,14 +186,12 @@ class PostController {
     
     }
     async delete({response, params, auth}){
-        try{
-            await auth.check()
-        }catch(e){
-            return response.unauthorized("Missing or invalid token")
-        }
+        const user = await auth.getUser()
         const post = await Post.findOrFail(params.id)
+        user.postsCount = user.postsCount - 1
         try{
-            post.delete()
+            await post.delete()
+            await user.save()
             return response.ok("Deleted succefully")
         }catch(e){
             return response.json({
@@ -219,6 +224,28 @@ class PostController {
                 error: e
             })
         }
+    }
+    async postPic({params, response}){
+        const post = await Post.findOrFail(params.id)
+        return response.status(200).download(Helpers.tmpPath(`posts/${post.image}`))
+    }
+    async singlePost({params, response, auth}){
+        try{
+        const post = await Post.query().with("comments").where("id",params.id).fetch()
+        const user = await auth.getUser()
+        const like = await Like.query().where("post_id",post.id).where("user_id",user.id).fetch()
+        post["is_liked"] = true
+        return response.status(200).json({
+            post: post
+        })
+        }catch(e){
+            const post = await Post.query().with("comments").where("id",params.id).fetch()
+            post["is_liked"] = false
+            return response.status(200).json({
+                post: post
+            })
+        }
+        
     }
 }
 

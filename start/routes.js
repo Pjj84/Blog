@@ -48,10 +48,14 @@ Route.post("/deletecomment/:id","CommentController.delete").as("deleteComment")
 
 Route.get("/showcomments/:id","CommentController.show").as("showComment")
 
-Route.get("/pic/:id","UserController.profilePic")
+Route.get("/pic/:id","UserController.profilePic").as("profilePic")
+
+Route.get("/img/:id","PostController.postPic").as("postImage")
+
+Route.post("/singlepost/:id","PostController.singlePost").as("singlePost")
 //--------------------------------------------------------------------------------------------------------------
 //These routes below are just scecthing, they may not work properly
-Route.on("/test").render("test");
-
-Route.get('/testlike','PostController.test')
+Route.get("/test",value => {const time =  new Date()
+const local = `${time.getFullYear()}/${time.getMonth()}`
+return local})
 
