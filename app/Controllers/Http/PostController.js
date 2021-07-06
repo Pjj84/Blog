@@ -50,6 +50,7 @@ class PostController {
 
         }
         else{post.image = null}
+        
 
         //Determining wether the post should be approved ot not
         if(user['is_admin'] === true){
@@ -81,6 +82,7 @@ class PostController {
     }*/ 
 
     async showAll({request, response , auth}){
+        try{
         const user = await auth.getUser()
         const likes = await Database.from('likes').where('user_id',user.id)
         const likes_count = await Like.query().where('user_id',user.id).count()
@@ -89,14 +91,23 @@ class PostController {
         for(let i=0;i<likes_count[0].count;i++){
             liked_posts_ids.push(likes[i]['post_id'])
         }
-        for(let i=0;i<liked_posts_ids.length;i++){
+        for(let i=0;i<posts.length;i++){
             if(liked_posts_ids.includes(posts[i].id)){
                 posts[i]['is_liked'] = true
+            }else{
+                post[i]['is_liked'] = false
             }
         }   
         response.status(200).json({
             posts: posts
         })
+        }catch(e){
+            const posts = await Post.all()
+            return response.status(200).json({
+                posts: posts
+            })
+        }
+        
     }
     async edit({request, response, params, auth}){
           //Authorizing the user 
@@ -194,12 +205,13 @@ class PostController {
     }
     async like({params, auth}){
         const post = await Post.findOrFail(params.id)
+        const user = await auth.getUser()
+        const like = new like
         post.likes++;
-        const like = new Like
-        like['user_id'] = await auth.getUser().id 
+        like['user_id'] = user.id
         like["posr_id"] = post.id
-        like.save()
         try{
+        like.save()
         post.save()
         }catch(e){
             return response.status(500).json({

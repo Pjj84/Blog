@@ -38,7 +38,7 @@ Route.post("/deletepost/:id","PostController.delete").as("deletePost")
 
 Route.get("/myposts","PostController.showControlled").as("myposts")
 
-Route.post("/like","PostController.like").as("like")
+Route.post("/like/:id","PostController.like").as("like")
 
 Route.post("/comment/:post_id/:comment_id?","CommentController.create").as("comment")
 

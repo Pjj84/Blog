@@ -6,7 +6,7 @@ const Schema = use('Schema')
 class UserSchema extends Schema {
   up () {
     this.alter('users', (table) => {
-      table.boolean("is_admin")
+      table.boolean("is_admin").notNullable()
       table.string("profile_pic")
     })
   }

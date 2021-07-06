@@ -15,6 +15,7 @@ class PostsSchema extends Schema {
       table.boolean("is_approved").notNullable()
       table.integer("likes").defaultTo(0)
       table.text("content","longtext")
+      table.text("description")
       table.string("image") 
       table.string("keys")
       table.timestamps()

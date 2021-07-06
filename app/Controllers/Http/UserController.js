@@ -8,6 +8,25 @@ class UserController {
         user.password = request.input('password')
         user.email = request.input('email')
         user['is_admin'] = false
+        if(request.file('pic')){
+            const pic = request.file('pic', { //Getting the image from request
+                types: ['image'],
+                size: '2mb'
+            })
+            const image_name = `${new Date().getTime()}.${pic.subtype}` //Generating the image's name
+            await pic.move(Helpers.tmpPath('uploads'), { //Moving the image to a specific directory
+                name: image_name,
+                overwrite: true
+             })        
+            if (!pic.moved()) { //Checking for errors
+                resopnse.status(500).json({
+                    massage: "Error saving image",
+                    error: profilePic.error()
+                }) 
+            }
+            post.image = await image_name //Finally saving the image's name in the post instance
+            }
+            else{post.image = null}
         await user.save();
         response.status(200).json({
             massage: "user created succefully",
@@ -25,16 +44,15 @@ class UserController {
         }catch(error){
         try{
             const token = await auth.attempt(request.input('email'), request.input('password'))
-            response.status(202).json({
+            const user = await User.query().where("email",request.input('email')).fetch()
+           return response.status(202).json({
                 massage: "Loged in",
+                user: user,
                 token: token
             })
-        }catch(e){
-            if(await auth.attempt(request.input('email'), request.input('password'))){
-            return 1
-            }
-            response.unauthorized("Wrong username or password")
-        }
+       }catch(e){
+            response.unauthorized("Email and password does not match any credential")
+       }
     }
     }
     async logout({response, auth}){
