@@ -208,16 +208,19 @@ class PostController {
             return response.status(200).json(await Post.query().where('user_id',user.id).fetch())
         }
     }
-    async like({params, auth}){
+    async like({params, auth, response}){
         const post = await Post.findOrFail(params.id)
         const user = await auth.getUser()
-        const like = new like
+        const like = new Like
         post.likes++;
         like['user_id'] = user.id
-        like["posr_id"] = post.id
+        like["post_id"] = post.id
         try{
-        like.save()
-        post.save()
+        await like.save()
+        await post.save()
+        return response.status(200).json({
+            massage: "Post liked succefully"
+        })
         }catch(e){
             return response.status(500).json({
                 massage: 'Error liking',
@@ -230,16 +233,17 @@ class PostController {
         return response.status(200).download(Helpers.tmpPath(`posts/${post.image}`))
     }
     async singlePost({params, response, auth}){
+        try{const post = await Post.query().with("comments").where("id",params.id).first()}catch(e){return response.status(500).json({massage: "Post not found"})}
         try{
-        const post = await Post.query().with("comments").where("id",params.id).fetch()
+        const post = await Post.query().with("comments").where("id",params.id).first()
         const user = await auth.getUser()
         const like = await Like.query().where("post_id",post.id).where("user_id",user.id).fetch()
         post["is_liked"] = true
-        return response.status(200).json({
-            post: post
-        })
+            return response.status(200).json({
+                post: post
+            })
         }catch(e){
-            const post = await Post.query().with("comments").where("id",params.id).fetch()
+            const post = await Post.query().with("comments").where("id",params.id).first()
             post["is_liked"] = false
             return response.status(200).json({
                 post: post
