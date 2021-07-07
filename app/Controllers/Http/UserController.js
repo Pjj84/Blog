@@ -48,7 +48,7 @@ class UserController {
         }catch(error){
         try{
             const token = await auth.attempt(request.input('email'), request.input('password'))
-            const user = await User.query().where("email",request.input('email')).fetch()
+            const user = await User.query().where("email",request.input('email')).first()
            return response.status(202).json({
                 massage: "Loged in",
                 user: user,
@@ -136,6 +136,22 @@ class UserController {
                 error: e
             })
         }
+    }
+    async allUsers({auth, response}){
+        try{
+            const user = await auth.getUser() //Should write a middleware for this function
+            const users = await User.all()
+            return response.status(200).json({
+                massage: "Users loaded successfully",
+                users: users
+            })
+        }catch(e){
+            return response.status(500).json({
+                massage: "Error loading users",
+                error: e
+            })
+        }
+
     }
 }
 

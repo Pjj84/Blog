@@ -204,32 +204,83 @@ class PostController {
         }
     }
     async showControlled({request, response, auth}){
+        //Here $ is used for variable posts to prevent pollution within other functions and declared a const post to used the $posts value outside of its block scope
         const user = await auth.getUser()
+        try{
         if(user.role == "Manager" || user.role == "Admin"){
-            return response.status(200).json(await Post.all())
+            var $posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
         }else{
-            return response.status(200).json(await Post.query().where('user_id',user.id).fetch())
+            var $posts = await Database.select("*").from('posts').where("user_id",user.id).orderBy("created_at",'desc')
         }
+        try{
+            const posts = $posts
+            const likes = await Like.qury().where("user_id",user.id).fetch()
+            const liked_posts_ids = []
+            for(let like of likes){
+                liked_posts_ids.push(like['post_id'])
+            }
+            for(let post of posts){
+                if(liked_posts_ids.includes(post.id)){
+                    post['is_liked'] = true
+                }else{
+                    post['is_liked'] = false
+                }
+            }
+            return response.status(200).json({
+                massage: "Posts loaded succefully",
+                posts: posts
+            })
+            }catch(e){
+                const posts = $posts
+                for(let post of posts){
+                    post["is_liked"] = false
+                }
+                return response.status(500).json({
+                    massage: "Posts loaded succefully",
+                    posts: posts
+                })
+            }
+        }catch(e){return response.status(500).json({massage: "Error loading posts"})}
+        
+    
     }
     async like({params, auth, response}){
-        const post = await Post.findOrFail(params.id)
-        const user = await auth.getUser()
-        const like = new Like
-        post.likes++;
-        like['user_id'] = user.id
-        like["post_id"] = post.id
-        try{
-        await like.save()
-        await post.save()
-        return response.status(200).json({
-            massage: "Post liked succefully"
-        })
-        }catch(e){
-            return response.status(500).json({
-                massage: 'Error liking',
-                error: e
-            })
-        }
+            const user = await auth.getUser()
+            const post = await Post.findOrFail(params.id)
+            post.likes = post.likes - 1
+            let like = await Like.query().where("user_id",user.id).where("post_id",post.id).first()
+            if(like){
+                
+                try{
+                await like.delete()
+                await post.save()
+                return response.status(200).json({
+                    massage: "Like removed successfully"
+                })
+                }catch(e){
+                return response.status(500).json({
+                    massage: "Error removing like",
+                    error: e
+                })
+            }
+            }else{
+                let like = await new Like
+                like["user_id"] = user.id
+                like["post_id"] = post.id
+                post.likes = post.likes - 1
+                try{
+                    await like.save()
+                    await post.save()
+                    return response.status(200).json({
+                        massage: "Post liked successfully"
+                    })
+                }catch(e){
+                    return response.status(500).json({
+                        massage: "Error liking",
+                        error: e
+                    })
+                }
+            }
     }
     async postPic({params, response}){
         const post = await Post.findOrFail(params.id)

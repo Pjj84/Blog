@@ -10,9 +10,15 @@ const Comment = use('App/Models/Comment')
 class CommentController {
     async create({request, response, auth, params}){
         const comment = new Comment
-        const user = await auth.getUser()
+        try{
+            const user = await auth.getUser()
+            comment["is_approved"] = true
+            comment['user_id'] = user.id
+        }catch(e){
+            comment["is_approved"] = false
+            comment["user_id"] = null
+        }
         comment['post_id'] = params['post_id'] //The id of the post
-        comment['user_id'] = user.id
         comment.text = request.input('text')
         comment['reply_to'] = params['comment_id'] || null //The id of the comment
         try{
@@ -30,6 +36,13 @@ class CommentController {
     }
     async edit({request, response, params}){
         const comment = await Comment.find(params.id)
+        try{
+            const user = await auth.getUser()
+            comment["user_id"] = usr.id
+        }catch(e){
+            comment["is_approved"] = false
+            comment["user_id"] = null
+        }
         comment.text = request.input('text')
         try{
             comment.save()
