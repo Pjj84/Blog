@@ -11,7 +11,7 @@ class UserSchema extends Schema {
       table.string('email', 254).notNullable().unique()
       table.string('password', 60).notNullable()
       table.integer("postsCount").defaultTo(0)
-      table.boolean("is_admin").notNullable()
+      table.enum("role",["User","Admin","Manager"],{useNative: true, existingType: true, enumName: "role"}).notNullable()
       table.string("profile_pic")
       table.timestamps()
     })

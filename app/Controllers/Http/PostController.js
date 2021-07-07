@@ -16,8 +16,6 @@ class PostController {
 
         post['user_id'] =  user.id
 
-        post['user_fullname'] = user.fullname
-
         post.description = request.input('description') || null
 
         if(request.input('title')){post.title = request.input('title')}
@@ -55,7 +53,7 @@ class PostController {
         
 
         //Determining wether the post should be approved ot not
-        if(user['is_admin'] === true){
+        if(user.role == 'Admin' || user.role == 'Manager'){
             post['is_approved'] = true
         }else{
             post['is_approved'] = false
@@ -85,28 +83,34 @@ class PostController {
         return await Drive.get(`uploads/${pic.image}`) 
     }*/ 
 
-    async showAll({request, response , auth}){
-        try{
-        const user = await auth.getUser()
-        const likes = await Database.from('likes').where('user_id',user.id)
-        const likes_count = await Like.query().where('user_id',user.id).count()
-        const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
-        const liked_posts_ids = []
+    async showAll({response , auth}){
+        try{//Dont forget to try foreach which you learned
+        const current_user = await auth.getUser() //We need the user.id to find his/her likes
+        const likes = await Database.from('likes').where('user_id',current_user.id) //The like objects that user has made before
+        const likes_count = await Like.query().where('user_id',current_user.id).count() //The count of the likes, which is needed for the loop
+        const posts = await Database.select("*").from('posts').orderBy("created_at",'desc') //getting all of the posts from the database
+        const liked_posts_ids = [] //The ids of the posts liked by the user
         for(let i=0;i<likes_count[0].count;i++){
             liked_posts_ids.push(likes[i]['post_id'])
         }
         for(let i=0;i<posts.length;i++){
-            if(liked_posts_ids.includes(posts[i].id)){
+            if(liked_posts_ids.includes(posts[i].id)){ //If the id of the current posts exit in the ids of the liked posts by the user, set as liked
                 posts[i]['is_liked'] = true
             }else{
                 post[i]['is_liked'] = false
             }
+            const user = await User.find(posts[i]['user_id'])
+            posts[i]['user_fullname'] = user.fullname
         }   
         response.status(200).json({
             posts: posts
         })
         }catch(e){
-            const posts = await Post.all()
+            const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
+            for(let i=0;i<posts.length;i++){ //Getting the user fullname here by query, because it might change while edit profile
+                const user = await User.find(posts[i]['user_id'])
+                posts[i]['user_fullname'] = user.fullname
+            }  
             return response.status(200).json({
                 posts: posts
             })
@@ -162,7 +166,7 @@ class PostController {
         else{post.image = null}
 
         //Determining wether the post should be approved ot not
-        if(user['is_admin'] === true){
+        if(user.role == 'Admin' || user.role == "Manager"){
             post['is_approved'] = true
         }else{
             post['is_approved'] = false
@@ -202,7 +206,7 @@ class PostController {
     }
     async showControlled({request, response, auth}){
         const user = await auth.getUser()
-        if(user['is_admin']){
+        if(user.role == "Manager" || user.role == "Admin"){
             return response.status(200).json(await Post.all())
         }else{
             return response.status(200).json(await Post.query().where('user_id',user.id).fetch())

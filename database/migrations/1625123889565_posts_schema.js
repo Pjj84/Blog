@@ -9,7 +9,6 @@ class PostsSchema extends Schema {
       table.increments()
       table.string('title').notNullable()
       table.integer('user_id').unsigned()
-      table.string("user_fullname").notNullable()
       table.foreign('user_id').references('users.id').onDelete("CASCADE")
       table.boolean("is_approved").notNullable()
       table.integer("likes").defaultTo(0)
