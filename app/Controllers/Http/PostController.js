@@ -84,37 +84,36 @@ class PostController {
     }*/ 
 
     async showAll({response , auth}){
-        try{//Dont forget to try foreach which you learned
+       try{
         const current_user = await auth.getUser() //We need the user.id to find his/her likes
         const likes = await Database.from('likes').where('user_id',current_user.id) //The like objects that user has made before
-        const likes_count = await Like.query().where('user_id',current_user.id).count() //The count of the likes, which is needed for the loop
         const posts = await Database.select("*").from('posts').orderBy("created_at",'desc') //getting all of the posts from the database
         const liked_posts_ids = [] //The ids of the posts liked by the user
-        for(let i=0;i<likes_count[0].count;i++){
-            liked_posts_ids.push(likes[i]['post_id'])
+        for(let like of likes){
+            liked_posts_ids.push(like['post_id'])
         }
-        for(let i=0;i<posts.length;i++){
-            if(liked_posts_ids.includes(posts[i].id)){ //If the id of the current posts exit in the ids of the liked posts by the user, set as liked
-                posts[i]['is_liked'] = true
+        for(let post of posts){
+            if(liked_posts_ids.includes(post.id)){ //If the id of the current posts exit in the ids of the liked posts by the user, set as liked
+                post['is_liked'] = true
             }else{
-                post[i]['is_liked'] = false
+                post['is_liked'] = false
             }
-            const user = await User.find(posts[i]['user_id'])
-            posts[i]['user_fullname'] = user.fullname
+            const user = await User.find(post   ['user_id'])
+            post['user_fullname'] = user.fullname
         }   
         response.status(200).json({
             posts: posts
         })
         }catch(e){
             const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
-            for(let i=0;i<posts.length;i++){ //Getting the user fullname here by query, because it might change while edit profile
-                const user = await User.find(posts[i]['user_id'])
-                posts[i]['user_fullname'] = user.fullname
-            }  
+            for(let post of posts){ //Getting the user fullname here by query, because it might change while edit profile
+                const user = await User.find(post['user_id'])
+               post['user_fullname'] = user.fullname
+           }  
             return response.status(200).json({
                 posts: posts
             })
-        }
+         }
         
     }
     async edit({request, response, params, auth}){
