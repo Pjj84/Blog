@@ -9,7 +9,7 @@ class Manager {
    * @param {Request} ctx.request
    * @param {Function} next
    */
-  async handle ({ auth }, next) {
+  async handle ({ auth, response }, next) {
     const user  = await auth.getUser()
     if(user.role != "Manager"){
       return response.status(401).json({

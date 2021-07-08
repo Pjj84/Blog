@@ -299,21 +299,20 @@ class PostController {
     }
     async singlePost({params, response, auth}){
         try{const post = await Post.query().with("comments").where("id",params.id).first()}catch(e){return response.status(500).json({massage: "Post not found"})}
-        try{
         const post = await Post.query().with("comments").where("id",params.id).first()
+        const creator = await User.findOrFail(post["user_id"])
+        post["user_fullname"] = creator.fullname
         const user = await auth.getUser()
-        const like = await Like.query().where("post_id",post.id).where("user_id",user.id).fetch()
-        post["is_liked"] = true
-            return response.status(200).json({
-                post: post
-            })
-        }catch(e){
-            const post = await Post.query().with("comments").where("id",params.id).first()
+        const like = await Like.query().where("post_id",post.id).where("user_id",user.id).first()
+        if(like){
+            post["is_liked"] = true
+        }else{
             post["is_liked"] = false
-            return response.status(200).json({
-                post: post
-            })
         }
+        return response.status(200).json({
+            massage: "Post loaded successfully",
+            post: post
+        })
         
     }
 }

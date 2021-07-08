@@ -9,7 +9,7 @@ class UserController {
         user.password = request.input('password')
         user.email = request.input('email')
         user.postsCount = 0
-        user.role = "Manager"
+        user.role = "User"
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],
