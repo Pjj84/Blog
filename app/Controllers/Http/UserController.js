@@ -139,7 +139,7 @@ class UserController {
     }
     async getUser(params, response){
         try{
-            const user = await User.findOrFail(params.id)
+            const user = await User.query().where("id",params.id).with("posts").first()
             return response.status(200).json({
                 massage: "User loaded succefully",
                 user: user

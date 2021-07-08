@@ -79,7 +79,7 @@ class PostController {
             const tag = await Tag.query().where("text",single_tag).first()
             if(tag){
                 const ids = tag["posts_id"].split(",").push(post.id)
-                tag["posts_id"] = ids.toString().substring(1,helper_var.length-1)
+                tag["posts_id"] = ids.toString().substring(1,ids.length-1)
                 tag["posts_count"] = tag["posts_count"] + 1
             }else{
             var $tag = new Tag
@@ -161,6 +161,8 @@ class PostController {
 
         post.description = request.input('description') || null
 
+        const tag_holder = posts.tags //We need to keep the previous tags of the post for later use in tag handler
+
         if(request.input('tags').length == 0){return response.noContent("Tags can not be empty")}
         post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
                                           //The code commented above must be added to code because the request... is an array
@@ -211,34 +213,40 @@ class PostController {
         }
 
         //handling the tags
-        const ids = []
-        for(let single_tag of request.input("tags").split(",")){//The split here must be removed because the request... is an array
-            const tag = await Tag.query().where("text",single_tag).first()
-            ret
-            if(tag){
-                const ids = tag["posts_id"].split(",").push(post.id)
-                tag["posts_id"] = ids.toString().substring(1,helper_var.length-1)
-                tag["posts_count"] = tag["posts_count"] + 1
-            }else{
-            var $tag = new Tag
-                $tag.text = single_tag
-            //const $post = await Post.last()
-                $tag["posts_id"] = post.id.toString() //$post.id + 1
-                $tag["posts_count"] = 1
-            }
-            const helper_var = $tag || tag
-            try{
-                await helper_var.save()
-            }catch(e){
-                return response.status(500).json({
-                    massage: "Error saving tag",
-                    error:e
+                const ids = []
+                for(let holder of post.tags.split(",")){//The split here must be removed because the request... is an array
+                if(!tag_holder.includes(holder)){ //Check if the revious tag is still or not
+                    const tag = await Tag.query().where("text",holder).first()
+                    if(tag){
+                        const ids = tag["posts_id"].split(",").push(post.id)
+                        tag["posts_id"] = ids.toString().substring(1,ids.length-1)
+                        tag["posts_count"] = tag["posts_count"] + 1
+                    }else{
+                    var $tag = new Tag
+                        $tag.text = holder
+                    //const $post = await Post.last()
+                        $tag["posts_id"] = post.id.toString() //$post.id + 1
+                        $tag["posts_count"] = 1
+                    }
+                    const helper_var = $tag || tag
+                    try{
+                        await helper_var.save()
+                    }catch(e){
+                        return response.status(500).json({
+                            massage: "Error saving tag",
+                            error:e
+                        })
+                    }
+                    }
+                }
+                for(let holder of tag_holder){
+                    if(!post.tags.includes(holder)){
+
+                    }
+                }
+                return response.status(200).json({
+                    massage: "Post edited successfully"
                 })
-            }
-        }
-        return response.status(200).json({
-            massage: "Post edited successfully"
-        })
     }
     async delete({response, params, auth}){
         const post = await Post.findOrFail(params.id)
@@ -309,10 +317,9 @@ class PostController {
     async like({params, auth, response}){
             const user = await auth.getUser()
             const post = await Post.findOrFail(params.id)
-            post.likes = post.likes - 1
             let like = await Like.query().where("user_id",user.id).where("post_id",post.id).first()
             if(like){
-                
+                post.likes = post.likes - 1
                 try{
                 await like.delete()
                 await post.save()
@@ -329,7 +336,7 @@ class PostController {
                 let like = await new Like
                 like["user_id"] = user.id
                 like["post_id"] = post.id
-                post.likes = post.likes - 1
+                post.likes = post.likes + 1
                 try{
                     await like.save()
                     await post.save()
