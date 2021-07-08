@@ -9,7 +9,7 @@ class UserController {
         user.password = request.input('password')
         user.email = request.input('email')
         user.postsCount = 0
-        user.role = "User"
+        user.role = "Manager"
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],
@@ -137,21 +137,19 @@ class UserController {
             })
         }
     }
-    async allUsers({auth, response}){
+    async getUser(params, response){
         try{
-            const user = await auth.getUser() //Should write a middleware for this function
-            const users = await User.all()
+            const user = await User.findOrFail(params.id)
             return response.status(200).json({
-                massage: "Users loaded successfully",
-                users: users
+                massage: "User loaded succefully",
+                user: user
             })
-        }catch(e){
+            }catch(e){
             return response.status(500).json({
-                massage: "Error loading users",
+                massage: "Error loading user",
                 error: e
             })
-        }
-
+            }
     }
 }
 

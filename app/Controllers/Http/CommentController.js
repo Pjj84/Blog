@@ -38,7 +38,18 @@ class CommentController {
         const comment = await Comment.find(params.id)
         try{
             const user = await auth.getUser()
-            comment["user_id"] = usr.id
+            if(comment["user_id"] == null){
+                if(user.role != "Admin" && user.role != "Manager"){
+                    return response.status(401).json({message: "Only manager and admin can edit this comment"})
+                }
+            }else{
+                if(comment["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
+                    return response.status(401).json({
+                        massage: "Only manager, admin and creator of the comment can edit this comment"
+                    })
+                }
+            }
+            comment["user_id"] = user.id
         }catch(e){
             comment["is_approved"] = false
             comment["user_id"] = null
@@ -57,8 +68,20 @@ class CommentController {
             })
         }
     }
-    async delete({params, response}){
+    async delete({params, response, auth}){
         const comment = await Comment.findOrFail(params.id)
+        const user = await auth.getUser()
+        if(comment["user_id"] == null){
+            if(user.role != "Admin" && user.role != "Manager"){
+                return response.status(401).json({message: "Only manager and admin can delete this comment"})
+            }
+        }else{
+            if(comment["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
+                return response.status(401).json({
+                    massage: "Only manager, admin and creator of the comment can delete this comment"
+                })
+            }
+        }
         try{
            comment.delete()
            return response.ok("Comment deleted succesfully")

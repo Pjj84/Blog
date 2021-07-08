@@ -98,7 +98,7 @@ class PostController {
             }else{
                 post['is_liked'] = false
             }
-            const user = await User.find(post   ['user_id'])
+            const user = await User.find(post['user_id'])
             post['user_fullname'] = user.fullname
         }   
         response.status(200).json({
@@ -119,13 +119,14 @@ class PostController {
     async edit({request, response, params, auth}){
           //Authorizing the user 
         const user = await auth.getUser()
-        if(!user){
-            return response.unauthorized("Missing or invalid token")
-        }
 
         //Editing the post
         const post = await Post.findOrFail(params.id)
-
+        if(post["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
+            return response.status(401).json({
+                massage: "Only the manager, admin and creator of the post can edit this post"
+            })
+        }
         if(request.input('title')){post.title = request.input('title')}
         else{return response.noContent("Title cannot be empty")}
 
@@ -189,12 +190,18 @@ class PostController {
     
     }
     async delete({response, params, auth}){
-        const user = await auth.getUser()
         const post = await Post.findOrFail(params.id)
-        user.postsCount = user.postsCount - 1
+        const user = await auth.getUser()
+        if(post["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
+            return response.status(401).json({
+                massage: "Only the manager, admin and creator of the post can delete this post"
+            })
+        }
+        const creator = await User.findOrFail(post["user_id"])
+        creator.postsCount = creator.postsCount - 1
         try{
             await post.delete()
-            await user.save()
+            await creator.save()
             return response.ok("Deleted succefully")
         }catch(e){
             return response.json({
@@ -214,7 +221,11 @@ class PostController {
         }
         try{
             const posts = $posts
-            const likes = await Like.qury().where("user_id",user.id).fetch()
+            for(let post of posts){
+                const user = await User.find(post['user_id'])
+                post["user_fullname"] = user.fullname
+            }
+            const likes = await Database.select("*").from("likes").where("user_id",user.id)
             const liked_posts_ids = []
             for(let like of likes){
                 liked_posts_ids.push(like['post_id'])
@@ -231,11 +242,11 @@ class PostController {
                 posts: posts
             })
             }catch(e){
-                const posts = $posts
+                //const posts = $posts
                 for(let post of posts){
                     post["is_liked"] = false
                 }
-                return response.status(500).json({
+                return response.status(200).json({
                     massage: "Posts loaded succefully",
                     posts: posts
                 })
