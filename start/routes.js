@@ -60,21 +60,21 @@ Route.get("/img/:id","PostController.postPic").as("postImage")
 
 Route.get("/singlepost/:id","PostController.singlePost").as("singlePost").middleware("auth")
 
-Route.get("/pendingposts","AdminController.pendingPosts").as("pendingPosts").middleware("[admin]").middleware("auth")
+Route.get("/pendingposts","AdminController.pendingPosts").as("pendingPosts").middleware("admin").middleware("auth")
 
-Route.get("/pendingcomments","AdminController.pendingComments").as("pendingComments").middleware("[admin]").middleware("auth")
+Route.get("/pendingcomments","AdminController.pendingComments").as("pendingComments").middleware("admin").middleware("auth")
 
-Route.post("/approvepost","AdminController.approvePost").as("approvePost").middleware("[admin]").middleware("auth")
+Route.post("/approvepost","AdminController.approvePost").as("approvePost").middleware("admin").middleware("auth")
 
-Route.post("/approvecomment","AdminController.approveComment").as("approveComment").middleware("[admin]").middleware("auth")
+Route.post("/approvecomment","AdminController.approveComment").as("approveComment").middleware("admin").middleware("auth")
 
-Route.delete("/kickuser","ManagerController.deleteUser").as("kick").middleware("[manager]").middleware("auth")
+Route.delete("/kickuser","ManagerController.deleteUser").as("kick").middleware("manager").middleware("auth")
 
 Route.get("/allusers","ManagerController.allUsers").as("allUsers").middleware("manager").middleware("auth")
 
-Route.put("/promote",'ManagerController.promote').as("promote").middleware("[manager]").middleware("auth")
+Route.put("/promote",'ManagerController.promote').as("promote").middleware("manager").middleware("auth")
 
-Route.put("/demote",'ManagerController.demote').as("demote").middleware("[manager]").middleware("auth")
+Route.put("/demote",'ManagerController.demote').as("demote").middleware("manager").middleware("auth")
 //--------------------------------------------------------------------------------------------------------------
 //These routes below are just scecthing, they may not work properly
 Route.get("/test",value => {const time =  new Date()

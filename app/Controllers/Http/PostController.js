@@ -5,6 +5,7 @@ const Helpers = use('Helpers')
 const Drive = use('Drive')
 const Like = use('App/models/Like')
 const Database = use('Database')
+const Tag = use("App/Models/Tag")
 
 class PostController {
     async create({request, response,auth}){
@@ -19,12 +20,14 @@ class PostController {
         post.description = request.input('description') || null
 
         if(request.input('title')){post.title = request.input('title')}
-        else{return response.noContent("Title cannot be empty")}
+        else{return response.noContent("Title can not be empty")}
 
         if(request.input('content')){post.content = request.input('content')}
-        else{return response.noContent("Content cannot be null")}
+        else{return response.noContent("Content can not be empty")}
 
-        post.keys = request.input('keys')? request.input('keys').toString():null
+        if(request.input('tags').length == 0){return response.noContent("Tags can not be empty")}
+        post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
+                                          //The code commented above must be added to code because the request... is an array
 
         if(request.file('post')){
         const pic = request.file('post', { //Getting the image from request
@@ -58,15 +61,10 @@ class PostController {
         }else{
             post['is_approved'] = false
         }
-        
-        //Returning the result 
+
         try{
             await post.save()
             await user.save()
-            return response.status(201).json({
-                massage: "Post created successfully",
-                data: post
-            })
         }catch(e){
             post.delete()
             return response.status(500).json({
@@ -74,7 +72,35 @@ class PostController {
                 error: e
             })
         }
-        
+
+        //handling the tags
+        const ids = []
+        for(let single_tag of request.input("tags").split(",")){//The split here must be removed because the request... is an array
+            const tag = await Tag.query().where("text",single_tag).first()
+            if(tag){
+                const ids = tag["posts_id"].split(",").push(post.id)
+                tag["posts_id"] = ids.toString().substring(1,helper_var.length-1)
+                tag["posts_count"] = tag["posts_count"] + 1
+            }else{
+            var $tag = new Tag
+                $tag.text = single_tag
+            //const $post = await Post.last()
+                $tag["posts_id"] = post.id.toString() //$post.id + 1
+                $tag["posts_count"] = 1
+            }
+            const helper_var = $tag || tag
+            try{
+                await helper_var.save()
+            }catch(e){
+                return response.status(500).json({
+                    massage: "Error saving tag",
+                    error:e
+                })
+            }
+        }
+        return response.status(200).json({
+            massage: "Post created successfully"
+        })
     }
 
     //Test version of download file
@@ -133,9 +159,11 @@ class PostController {
         if(request.input('content')){post.content = request.input('content')}
         else{return response.noContent("Content cannot be empty")}
 
-        post.description = request.input('description')
+        post.description = request.input('description') || null
 
-        post.keys = request.input('keys')? request.input('keys').toString():null
+        if(request.input('tags').length == 0){return response.noContent("Tags can not be empty")}
+        post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
+                                          //The code commented above must be added to code because the request... is an array
 
         if(request.file('post')){
 
@@ -175,19 +203,42 @@ class PostController {
         //Returning the result 
         try{
             await post.save()
-            response.status(201).json({
-                massage: "Post edited successfully",
-                data: post
-            })
         }catch(e){
-            await post.delete()
             return response.status(500).json({
                 massage: "Error editing post",
                 error: e
             })
         }
-        
-    
+
+        //handling the tags
+        const ids = []
+        for(let single_tag of request.input("tags").split(",")){//The split here must be removed because the request... is an array
+            const tag = await Tag.query().where("text",single_tag).first()
+            ret
+            if(tag){
+                const ids = tag["posts_id"].split(",").push(post.id)
+                tag["posts_id"] = ids.toString().substring(1,helper_var.length-1)
+                tag["posts_count"] = tag["posts_count"] + 1
+            }else{
+            var $tag = new Tag
+                $tag.text = single_tag
+            //const $post = await Post.last()
+                $tag["posts_id"] = post.id.toString() //$post.id + 1
+                $tag["posts_count"] = 1
+            }
+            const helper_var = $tag || tag
+            try{
+                await helper_var.save()
+            }catch(e){
+                return response.status(500).json({
+                    massage: "Error saving tag",
+                    error:e
+                })
+            }
+        }
+        return response.status(200).json({
+            massage: "Post edited successfully"
+        })
     }
     async delete({response, params, auth}){
         const post = await Post.findOrFail(params.id)
