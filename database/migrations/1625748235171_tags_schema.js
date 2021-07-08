@@ -7,8 +7,8 @@ class TagsSchema extends Schema {
   up () {
     this.create('tags', (table) => {
       table.increments()
-      table.string("text").notNullable()
-      table.string("posts_id")
+      table.string("text").notNullable().unique()
+      table.string("posts_id").defaultTo(null)
       table.integer("posts_count").unsigned()
       table.timestamps()
     })

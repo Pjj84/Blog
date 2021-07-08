@@ -78,8 +78,9 @@ class PostController {
         for(let single_tag of request.input("tags").split(",")){//The split here must be removed because the request... is an array
             const tag = await Tag.query().where("text",single_tag).first()
             if(tag){
-                const ids = tag["posts_id"].split(",").push(post.id)
-                tag["posts_id"] = ids.toString().substring(1,ids.length-1)
+                const ids = tag["posts_id"].split(",")
+                ids.push(post.id.toString())
+                tag["posts_id"] = ids.toString().substring(0,ids.toString().length + 1)
                 tag["posts_count"] = tag["posts_count"] + 1
             }else{
             var $tag = new Tag
@@ -102,12 +103,6 @@ class PostController {
             massage: "Post created successfully"
         })
     }
-
-    //Test version of download file
-    /*async show(){
-        const pic = await Post.findBy('writer_id',7)
-        return await Drive.get(`uploads/${pic.image}`) 
-    }*/ 
 
     async showAll({response , auth}){
        try{
@@ -161,7 +156,7 @@ class PostController {
 
         post.description = request.input('description') || null
 
-        const tag_holder = posts.tags //We need to keep the previous tags of the post for later use in tag handler
+        const tag_holder = post.tags //We need to keep the previous tags of the post for later use in tag handler
 
         if(request.input('tags').length == 0){return response.noContent("Tags can not be empty")}
         post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
@@ -218,8 +213,9 @@ class PostController {
                 if(!tag_holder.includes(holder)){ //Check if the revious tag is still or not
                     const tag = await Tag.query().where("text",holder).first()
                     if(tag){
-                        const ids = tag["posts_id"].split(",").push(post.id)
-                        tag["posts_id"] = ids.toString().substring(1,ids.length-1)
+                        const ids = tag["posts_id"].split(",")
+                        ids.push(post.id)
+                        tag["posts_id"] = ids.toString().substring(0,ids.toString().length + 1)
                         tag["posts_count"] = tag["posts_count"] + 1
                     }else{
                     var $tag = new Tag
@@ -239,9 +235,21 @@ class PostController {
                     }
                     }
                 }
-                for(let holder of tag_holder){
-                    if(!post.tags.includes(holder)){
-
+                for(let holder of tag_holder.split(",")){
+                    if(!post.tags.includes(holder)){ //Check if the previous tag 
+                        const tag = await Tag.query().where("text", holder).first()
+                        const helper_var = tag["posts_id"].split(",")
+                        const id_index = helper_var.indexOf(post.id.toString())
+                        helper_var.splice(id_index,1)
+                        tag["posts_id"] = helper_var.toString()
+                        tag["posts_count"] = tag["posts_count"] - 1
+                        try{
+                            await tag.save()
+                        }catch(e){
+                            return response.status(500).json({
+                                massage: "Error editing tags"
+                            })
+                        }
                     }
                 }
                 return response.status(200).json({
@@ -258,6 +266,21 @@ class PostController {
         }
         const creator = await User.findOrFail(post["user_id"])
         creator.postsCount = creator.postsCount - 1
+        for(let holder of post.tags.split(",")){
+            const tag = await Tag.query().where("text", holder).first()
+            const helper_var = tag["posts_id"].split(",")
+            const id_index = helper_var.indexOf(post.id.toString())
+            helper_var.splice(id_index,1)
+            tag["posts_id"] = helper_var.toString()
+            tag["posts_count"] = tag["posts_count"] - 1
+            try{
+                await tag.save()
+            }catch(e){
+                return response.status(500).json({
+                     massage: "Error editing tags"
+                })
+            }
+        }
         try{
             await post.delete()
             await creator.save()
