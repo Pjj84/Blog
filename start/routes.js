@@ -64,17 +64,17 @@ Route.get("/pendingposts","AdminController.pendingPosts").as("pendingPosts").mid
 
 Route.get("/pendingcomments","AdminController.pendingComments").as("pendingComments").middleware("admin").middleware("auth")
 
-Route.post("/approvepost","AdminController.approvePost").as("approvePost").middleware("admin").middleware("auth")
+Route.post("/approvepost/:id","AdminController.approvePost").as("approvePost").middleware("admin").middleware("auth")
 
-Route.post("/approvecomment","AdminController.approveComment").as("approveComment").middleware("admin").middleware("auth")
+Route.post("/approvecomment/:id","AdminController.approveComment").as("approveComment").middleware("admin").middleware("auth")
 
-Route.delete("/kickuser","ManagerController.deleteUser").as("kick").middleware("manager").middleware("auth")
+Route.delete("/kickuser/:id","ManagerController.deleteUser").as("kick").middleware("manager").middleware("auth")
 
 Route.get("/allusers","ManagerController.allUsers").as("allUsers").middleware("manager").middleware("auth")
 
-Route.put("/promote",'ManagerController.promote').as("promote").middleware("manager").middleware("auth")
+Route.put("/promote/:id",'ManagerController.promote').as("promote").middleware("manager").middleware("auth")
 
-Route.put("/demote",'ManagerController.demote').as("demote").middleware("manager").middleware("auth")
+Route.put("/demote/:id",'ManagerController.demote').as("demote").middleware("manager").middleware("auth")
 
 Route.get("/tags","TagController.populars").as("popularTags")
 

@@ -10,12 +10,12 @@ const Comment = use('App/Models/Comment')
 class CommentController {
     async create({request, response, auth, params}){
         const comment = new Comment
+        try{
         const user = await auth.getUser()
-        if(user){
-            comment["status"] = "Approved"
+        comment["status"] = "Approved"
             comment['user_id'] = user.id
             user["comments_count"] = user["comments_count"] + 1
-        }else{
+        }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
         }
@@ -35,10 +35,10 @@ class CommentController {
             })
         }
     }
-    async edit({request, response, params}){
+    async edit({auth, request, response, params}){
         const comment = await Comment.find(params.id)
+        try{
         const user = await auth.getUser()
-        if(user){
             if(comment["user_id"] == null){
                 if(user.role != "Admin" && user.role != "Manager"){
                     return response.status(401).json({message: "Only manager and admin can edit this comment"})
@@ -51,7 +51,7 @@ class CommentController {
                 }
             }
             comment["user_id"] = user.id
-        }else{
+        }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
         }
@@ -74,20 +74,19 @@ class CommentController {
     }
     async delete({params, response, auth}){
         const comment = await Comment.findOrFail(params.id)
+        try{
         const user = await auth.getUser()
-        if(user){
         if(comment["user_id"] == null){
             if(user.role != "Admin" && user.role != "Manager"){
                 return response.status(401).json({message: "Only manager and admin can delete this comment"})
             }
-        }else{
-            if(comment["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
-                return response.status(401).json({
-                    massage: "Only manager, admin and creator of the comment can delete this comment"
-                })
-            }
         }
-        }
+        if(comment["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
+            return response.status(401).json({
+                massage: "Only manager, admin and creator of the comment can delete this comment"
+            })
+           }
+        }catch(e){}
         try{
            comment.delete()
            return response.ok("Comment deleted succesfully")
@@ -101,7 +100,7 @@ class CommentController {
     }
     async show({params, response}){
         try{
-        const comment = await Comment.query().where("post_id",params.id).where("status","Approved").orderBy("created_at",desc).fetch()
+        const comment = await Comment.query().where("post_id",params.id).where("status","Approved").orderBy("created_at","desc").fetch()
         return response.status(200).json(comment)
         }catch(e){
             return response.status(500).json({

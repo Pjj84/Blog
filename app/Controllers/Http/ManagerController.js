@@ -3,22 +3,22 @@ const User = use("App/Models/User")
 
 class ManagerController {
     async deleteUser({response, params}){
-        try{
+        //try{
             const user = await User.findOrFail(params.id)
-            user.delete()
+            await user.delete()
             return response.status(200).json({
                 massage: "User deleted"
             })
-            }catch(e){
-            return response.status(500).json({
-                massage: "Error deleting user",
-                error: e
-            })
-            }
+         //   }catch(e){
+          //  return response.status(500).json({
+           //     massage: "Error deleting user",
+           //     error: e
+           // })
+            //}
     }
     async allUsers({response}){
         try{
-            const users = await User.all()
+            const users = await User.query().whereNot("role","Manager").fetch()
             return response.status(200).json({
                 massage: "Users loaded successfully",
                 users: users
@@ -35,6 +35,7 @@ class ManagerController {
         try{
         const user = await User.findOrFail(params.id)
         user.role = "Admin"
+        user.save()
         return response.status(200).json({
             massage: "User promoted successfully"
         })
@@ -49,6 +50,7 @@ class ManagerController {
         try{
             const user = await User.findOrFail(params.id)
             user.role = "User" 
+            user.save()
             return response.status(200).json({
                 massage: "User demoted"
             })

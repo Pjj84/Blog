@@ -15,7 +15,7 @@ class PostsSchema extends Schema {
       table.text("description")
       table.string("image") 
       table.string("tags")
-      table.enum("status",["Pending","Approved","Disapproved"],{useNative: true, enumName: "status"}).defaultTo("Pending")
+      table.enum("status",["Pending","Approved","Disapproved"],{useNative: true, existingType: true,enumName: "status"}).defaultTo("Pending")
       table.timestamps()
     })
   }

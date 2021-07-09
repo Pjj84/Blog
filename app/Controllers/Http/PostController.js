@@ -58,7 +58,7 @@ class PostController {
 
         //Determining wether the post should be approved ot not
         if(user.role == 'Admin' || user.role == 'Manager'){
-            post['stauts'] = "Approved"
+            post['status'] = "Approved"
         }else{
             post['status'] = "Pending"
         }
