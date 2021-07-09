@@ -386,8 +386,8 @@ class PostController {
                 message:"Post not found"
             })
         }
+        try{
         const user = await auth.getUser()
-        if(user){
         const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
         const creator = await User.findOrFail(post["user_id"])
         post["user_fullname"] = creator.fullname
@@ -402,7 +402,7 @@ class PostController {
             post: post,
             comment: comment
         })
-        }else{
+        }catch(e){
             const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
             const creator = await User.findOrFail(post["user_id"])
             post["user_fullname"] = creator.fullname
