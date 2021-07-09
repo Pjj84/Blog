@@ -3,15 +3,16 @@ const User = use("App/Models/User")
 const Post = use("App/Models/Post")
 const Helpers = use('Helpers')
 const Drive = use('Drive')
-const Like = use('App/models/Like')
+const Like = use('App/Models/Like')
 const Database = use('Database')
+const Comment = use('App/Models/Comment')
 const Tag = use("App/Models/Tag")
 
 class PostController {
     async create({request, response,auth}){
         //Authorizing the user 
         const user = await auth.getUser()
-        user.postsCount = user.postsCount + 1
+        user["posts_count"] = user["posts_count"] + 1
         //Creating the post
         const post = await new Post
 
@@ -57,9 +58,9 @@ class PostController {
 
         //Determining wether the post should be approved ot not
         if(user.role == 'Admin' || user.role == 'Manager'){
-            post['is_approved'] = true
+            post['stauts'] = "Approved"
         }else{
-            post['is_approved'] = false
+            post['status'] = "Pending"
         }
 
         try{
@@ -108,7 +109,7 @@ class PostController {
        try{
         const current_user = await auth.getUser() //We need the user.id to find his/her likes
         const likes = await Database.from('likes').where('user_id',current_user.id) //The like objects that user has made before
-        const posts = await Database.select("*").from('posts').orderBy("created_at",'desc') //getting all of the posts from the database
+        const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc') //getting all of the posts from the database
         const liked_posts_ids = [] //The ids of the posts liked by the user
         for(let like of likes){
             liked_posts_ids.push(like['post_id'])
@@ -126,7 +127,7 @@ class PostController {
             posts: posts
         })
         }catch(e){
-            const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
+            const posts = await Database.select("*").from('posts').where("status",).orderBy("created_at",'desc')
             for(let post of posts){ //Getting the user fullname here by query, because it might change while edit profile
                 const user = await User.find(post['user_id'])
                post['user_fullname'] = user.fullname
@@ -192,9 +193,9 @@ class PostController {
 
         //Determining wether the post should be approved ot not
         if(user.role == 'Admin' || user.role == "Manager"){
-            post['is_approved'] = true
+            post['status'] = "Approved"
         }else{
-            post['is_approved'] = false
+            post['status'] = "Pending"
         }
 
         //Returning the result 
@@ -265,7 +266,7 @@ class PostController {
             })
         }
         const creator = await User.findOrFail(post["user_id"])
-        creator.postsCount = creator.postsCount - 1
+        creator["posts_count"] = creator["posts_count"] - 1
         for(let holder of post.tags.split(",")){
             const tag = await Tag.query().where("text", holder).first()
             const helper_var = tag["posts_id"].split(",")
@@ -307,7 +308,7 @@ class PostController {
                 const user = await User.find(post['user_id'])
                 post["user_fullname"] = user.fullname
             }
-            const likes = await Database.select("*").from("likes").where("user_id",user.id)
+            const likes = await Database.select("*").from("likes").where("user_id",user.id).orderBy("created_at")
             const liked_posts_ids = []
             for(let like of likes){
                 liked_posts_ids.push(like['post_id'])
@@ -379,11 +380,17 @@ class PostController {
         return response.status(200).download(Helpers.tmpPath(`posts/${post.image}`))
     }
     async singlePost({params, response, auth}){
-        try{const post = await Post.query().with("comments").where("id",params.id).first()}catch(e){return response.status(500).json({massage: "Post not found"})}
-        const post = await Post.query().with("comments").where("id",params.id).first()
+        const post = await Post.query().where("id",params.id).where("status","Approved").first()
+        if(!post){
+            return response.status(404).json({
+                message:"Post not found"
+            })
+        }
+        const user = await auth.getUser()
+        if(user){
+        const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
         const creator = await User.findOrFail(post["user_id"])
         post["user_fullname"] = creator.fullname
-        const user = await auth.getUser()
         const like = await Like.query().where("post_id",post.id).where("user_id",user.id).first()
         if(like){
             post["is_liked"] = true
@@ -392,8 +399,19 @@ class PostController {
         }
         return response.status(200).json({
             massage: "Post loaded successfully",
-            post: post
+            post: post,
+            comment: comment
         })
+        }else{
+            const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
+            const creator = await User.findOrFail(post["user_id"])
+            post["user_fullname"] = creator.fullname
+            return response.status(200).json({
+                massage: "Post loaded successfully",
+                post: post,
+                comment: comment
+            })
+        }
         
     }
 }

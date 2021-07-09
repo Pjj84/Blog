@@ -1,5 +1,6 @@
 'use strict'
 const User = use("App/Models/User");
+const Post = use("App/Models/Post");
 const Helpers = use("Helpers");
 class UserController {
     async create({ request, response}){
@@ -8,8 +9,10 @@ class UserController {
         user.fullname = request.input('fullname')
         user.password = request.input('password')
         user.email = request.input('email')
-        user.postsCount = 0
+        user["posts_count"] = 0
+        user["comments_count"] = 0
         user.role = "User"
+        user.description = request.input('description')
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],
@@ -85,9 +88,10 @@ class UserController {
     }
     async edit({request, response, auth}){
         const user = await auth.getUser()
-        user.fullname = request.input('fullname')
-        user.email = request.input('email')
-        user.password = request.input('password')
+        user.fullname = request.input('fullname') || user.fullname
+        user.email = request.input('email') || user.email
+        user.password = request.input('password') || user.password
+        user.description = request.input('description') || user.description
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],
@@ -108,7 +112,7 @@ class UserController {
             }
             user['profile_pic'] = image_name //Finally saving the image's name in the post instance
             }
-            else{user['profile_pic'] = null}
+            if(!user['profile_pic']){user['profile_pic'] = "uploads/default.jpg"}
             try{
                 await user.save()
                 return response.status(200).json({
@@ -137,18 +141,20 @@ class UserController {
             })
         }
     }
-    async getUser(params, response){
-        try{
-            const user = await User.query().where("id",params.id).with("posts").first()
-            return response.status(200).json({
-                massage: "User loaded succefully",
-                user: user
-            })
+    async getUser({params, response}){
+            try{
+                const user = await User.query().where("id",params.id).first()
+                const posts = await Post.query().where("user_id",user.id).where("status","Approved").orderBy("created_at").limit(5).fetch()
+                return response.status(200).json({
+                    massage: "User loaded succefully",
+                    user: user,
+                    posts: posts
+                })
             }catch(e){
-            return response.status(500).json({
-                massage: "Error loading user",
-                error: e
-            })
+                return response.status(500).json({
+                    massage: "Error loading user",
+                    error: e
+                })
             }
     }
 }

@@ -6,7 +6,7 @@ const Comment = use("App/Models/Comment")
 class AdminController {
     async pendingPosts({response}){
         try{
-        const posts = await Post.query().where("is_approved",false).fetch()
+        const posts = await Post.query().where("status","Pending").fetch()
         return response.status(200).json({
             massage: "Posts loaded succefully",
             posts: posts
@@ -20,10 +20,10 @@ class AdminController {
     }
     async pendingComments({response}){
         try{
-        const posts = await Comment.query().where("is_approved",true).with("comments").fetch()
+        const comments = await Comment.query().where("status","Pending").fetch()
         return response.status.json({
             massage: "Posts and comments loaded succefully",
-            posts: posts
+            comments: comments
         })
         }catch(e){
             return response.status.json({
@@ -32,10 +32,10 @@ class AdminController {
             })
         }
     }
-    async approvePost({params, response}){
+    async approvePost({request, params, response}){
         try{
         const post = await Post.findOrFail(params.id)
-        post["is_approved"] = true
+        post["status"] = request.input("approvement")
         post.save()
         return response.status(200).json({
             massage: "Post approved"
@@ -47,10 +47,10 @@ class AdminController {
         })
         }
     }
-    async approveComment({params, response}){
+    async approveComment({request, params, response}){
         try{
         const comment = await Comment.findOrFail(params.id)
-        comment["is_approved"] = true
+        comment["status"] = request.input("approvement")
         comment.save()
         return response.status(200).json({
             massage: "Comment Approved"

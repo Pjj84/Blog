@@ -32,7 +32,7 @@ Route.put("/edituser","UserController.edit").as("editUser").middleware("auth")
 
 Route.delete("/deleteuser","UserController.delete").as("deleteUser").middleware("auth")
 
-Route.get("/getuser","UserController.getUser").as("getUser").middleware("auth")
+Route.get("/getuser/:id","UserController.getUser").as("getUser")
 
 Route.post("/post",'PostController.create').as("post").middleware("auth")
 

@@ -20,27 +20,20 @@ class TagController {
         }
     }
     async posts({response, params}){
-        // THIS CODE IS BULLSHIT YOU HAVE TO FIX IT AS SOON AS YOU CAN
-        //try{
+        try{
             const tag = await Tag.findOrFail(params.id)
-            const posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
-            const chosen_posts = []
-            for(let post of posts){
-                const array = post.tags.split(",")
-                if(array.includes(tag.text)){
-                    chosen_posts.push(post)
-                }
-            }
+            const posts_ids = tag["posts_id"].split(",")
+            const posts = await Post.query().whereIn("id", posts_ids).fetch()
             return response.status(200).json({
                 massage: "Posts loaded successfully",
-                posts: chosen_posts
+                posts: posts
             })
-        //}catch(e){
+        }catch(e){
             return response.status(500).json({
                 massage: "Error loading posts",
                 error: e
             })
-        //}
+        }
     }
 }
 
