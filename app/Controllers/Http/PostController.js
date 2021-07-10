@@ -108,7 +108,7 @@ class PostController {
     async showAll({response , auth}){
        try{
         const current_user = await auth.getUser() //We need the user.id to find his/her likes
-        const likes = await Database.from('likes').where('user_id',current_user.id) //The like objects that user has made before
+        const likes = await Database.select("*").from('likes').where('user_id',current_user.id) //The like objects that user has made before
         const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc') //getting all of the posts from the database
         const liked_posts_ids = [] //The ids of the posts liked by the user
         for(let like of likes){
@@ -127,7 +127,7 @@ class PostController {
             posts: posts
         })
         }catch(e){
-            const posts = await Database.select("*").from('posts').where("status",).orderBy("created_at",'desc')
+            const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
             for(let post of posts){ //Getting the user fullname here by query, because it might change while edit profile
                 const user = await User.find(post['user_id'])
                post['user_fullname'] = user.fullname
@@ -380,7 +380,7 @@ class PostController {
         return response.status(200).download(Helpers.tmpPath(`posts/${post.image}`))
     }
     async singlePost({params, response, auth}){
-        const post = await Post.query().where("id",params.id).where("status","Approved").first()
+        const post = await Post.query().where("id",params.id).first()
         if(!post){
             return response.status(404).json({
                 message:"Post not found"
