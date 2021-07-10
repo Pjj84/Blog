@@ -296,7 +296,7 @@ class PostController {
     async showControlled({request, response, auth}){
         //Here $ is used for variable posts to prevent pollution within other functions and declared a const post to used the $posts value outside of its block scope
         const user = await auth.getUser()
-        try{
+        //try{
         if(user.role == "Manager" || user.role == "Admin"){
             var $posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
         }else{
@@ -334,7 +334,7 @@ class PostController {
                     posts: posts
                 })
             }
-        }catch(e){return response.status(500).json({massage: "Error loading posts"})}
+        //}catch(e){return response.status(500).json({massage: "Error loading posts"})}
         
     
     }
