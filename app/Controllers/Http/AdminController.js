@@ -6,7 +6,7 @@ const Database = use("Database")
 
 class AdminController {
     async pendingPosts({response}){
-        //try{
+        try{
         const posts = await Database.select("*").from('posts').where("status","Pending").orderBy("created_at", "asc")
         for(let post of posts){
             const user = await User.query().where("id",post.id).first()
@@ -16,15 +16,15 @@ class AdminController {
             massage: "Posts loaded succefully",
             posts: posts
         })
-       // }catch(e){
-           // return response.status(500).json({
-          //      massage: "Error loading posts",
-           //     error: e
-            //})
-        //}
+        }catch(e){
+            return response.status(500).json({
+                massage: "Error loading posts",
+                error: e
+            })
+        }
     }
     async pendingComments({response}){
-        //try{
+        try{
         const comments = await Database.select("*").from("comments").where("status","Pending").orderBy("created_at","asc")
         for(let comment of comments){
             const user = await User.query().where("id",comment["user_id"]).first()
@@ -36,12 +36,12 @@ class AdminController {
             massage: "Comments loaded succefully",
             comments: comments
         })
-        //}catch(e){
+        }catch(e){
             return response.status(500).json({
                 massage: "Error loading posts and comments",
                 error: e
             })
-        //}
+        }
     }
     async approvePost({request, params, response}){
         try{
