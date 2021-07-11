@@ -15,6 +15,7 @@ class CommentsSchema extends Schema {
       table.integer("reply_to").nullable()
       table.foreign("reply_to").references("comments.id").onDelete("CASCADE")
       table.enum("status",["Pending","Approved","Disapproved"],{useNative: true, existingType: true, enumName: "status"}).notNullable()
+      table.string("replies")
       table.timestamps()
     })
   }

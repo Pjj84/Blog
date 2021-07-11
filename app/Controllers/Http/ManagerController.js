@@ -35,7 +35,7 @@ class ManagerController {
         try{
         const user = await User.findOrFail(params.id)
         user.role = "Admin"
-        user.save()
+        await user.save()
         return response.status(200).json({
             massage: "User promoted successfully"
         })
@@ -50,7 +50,7 @@ class ManagerController {
         try{
             const user = await User.findOrFail(params.id)
             user.role = "User" 
-            user.save()
+            await user.save()
             return response.status(200).json({
                 massage: "User demoted"
             })

@@ -21,19 +21,38 @@ class CommentController {
         }
         comment['post_id'] = params['post_id'] //The id of the post
         comment.text = request.input('text')
-        comment['reply_to'] = params['comment_id'] || null //The id of the comment
+        comment["reply_to"] = params["comment_id"] || null
+        comment.replies = ""
         try{
-            comment.save()
-            return response.status(200).json({
-                massage: "Comment created successfully",
-                comment: comment
-            })
+            await comment.save()
         }catch(e){
             return response.status(500).json({
                 massage: "Error creating comment",
                 error: e
             })
         }
+        if(params['comment_id']){
+            const replied_comment = await Comment.findOrFail(params['comment_id'])
+            const array = replied_comment.replies ? replied_comment.replies.split(",") : [] 
+            array.push(comment.id)
+            replied_comment.replies = array.toString().substring(0,array.toString().length + 1)
+            try{
+                await replied_comment.save()
+                return response.status(200).json({
+                    massage: "Comment and relpies saved successfully"
+                })
+            }catch(e){
+                return response.status(500).json({
+                    massage: "Error saving replies",
+                    error: e
+                })
+            }
+        }else{
+            return response.status(200).json({
+                massage: "Comment saved succefully"
+            })
+        }
+
     }
     async edit({auth, request, response, params}){
         const comment = await Comment.find(params.id)

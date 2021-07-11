@@ -21,7 +21,7 @@ class TagController {
     }
     async posts({response, params}){
         try{
-            const tag = await Tag.findOrFail(params.id)
+            const tag = await Tag.query().where("text",params.tag).first()
             const posts_ids = tag["posts_id"].split(",")
             const posts = await Post.query().whereIn("id", posts_ids).fetch()
             return response.status(200).json({

@@ -9,7 +9,7 @@ class AdminController {
         try{
         const posts = await Database.select("*").from('posts').where("status","Pending").orderBy("created_at", "asc")
         for(let post of posts){
-            const user = await User.query().where("id",post.id).first()
+            const user = await User.query().where("id",post["user_id"]).first()
             post["user_fullname"] = user.fullname
         }
         return response.status(200).json({
@@ -44,25 +44,25 @@ class AdminController {
         }
     }
     async approvePost({request, params, response}){
-        try{
+       // try{
         const post = await Post.findOrFail(params.id)
         post["status"] = request.input("approvement")
-        post.save()
+        await post.save()
         return response.status(200).json({
             massage: "Post approved"
         })
-        }catch(e){
+        //}catch(e){
         return response.status(500).json({
             massage: "Error approving post",
             error: e
         })
-        }
+        //}
     }
     async approveComment({request, params, response}){
         try{
         const comment = await Comment.findOrFail(params.id)
         comment["status"] = request.input("approvement")
-        comment.save()
+        await comment.save()
         return response.status(200).json({
             massage: "Comment Approved"
         })
