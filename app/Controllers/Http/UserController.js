@@ -145,6 +145,9 @@ class UserController {
             try{
                 const user = await User.query().where("id",params.id).first()
                 const posts = await Post.query().where("user_id",user.id).where("status","Approved").orderBy("created_at").limit(5).fetch()
+                for(let post of posts){
+                    post["user_fullname"] = user.fullname
+                }
                 return response.status(200).json({
                     massage: "User loaded succefully",
                     user: user,
