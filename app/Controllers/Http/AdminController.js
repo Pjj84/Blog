@@ -44,19 +44,19 @@ class AdminController {
         }
     }
     async approvePost({request, params, response}){
-       // try{
+        try{
         const post = await Post.findOrFail(params.id)
         post["status"] = request.input("approvement")
         await post.save()
         return response.status(200).json({
             massage: "Post approved"
         })
-        //}catch(e){
+        }catch(e){
         return response.status(500).json({
             massage: "Error approving post",
             error: e
         })
-        //}
+        }
     }
     async approveComment({request, params, response}){
         try{
