@@ -75,7 +75,7 @@ class CommentController {
             comment["user_id"] = null
         }
         if(!request.input("text")){
-            return response.status(202).json({message: "Comment text can not be empty"})
+            return response.status(204).json({message: "Comment text can not be empty"})
         }
         comment.text = request.input('text')
         try{
@@ -108,7 +108,7 @@ class CommentController {
         }catch(e){}
         try{
            comment.delete()
-           return response.ok("Comment deleted succesfully")
+           return response.status(200).json({massage: "Comment deleted succesfully"})
         }catch(e){
             return response.status(500).json({
                 massage: "Error deleting comment",
@@ -120,7 +120,10 @@ class CommentController {
     async show({params, response}){
         try{
         const comment = await Comment.query().where("post_id",params.id).where("status","Approved").orderBy("created_at","desc").fetch()
-        return response.status(200).json(comment)
+        return response.status(200).json({
+            massage: "Comments loaded successfully" ,
+            comments: comment
+        })
         }catch(e){
             return response.status(500).json({
                 massage: "Error loading comments",

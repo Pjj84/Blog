@@ -2,6 +2,7 @@
 const User = use("App/Models/User");
 const Post = use("App/Models/Post");
 const Helpers = use("Helpers");
+const Database = use("Database");
 class UserController {
     async create({ request, response}){
         const user = new User()
@@ -41,13 +42,13 @@ class UserController {
         })
     }
     else{
-        response.notAcceptable("Unacceptable cridentials or empty");
+        response.status(406).json({massage: "Unacceptable cridentials or empty"})
     }
     }
     async store({request, response, auth}){
         try{
             await auth.getUser()
-            response.ok("Already loged in")
+            response.status(200).json({massage: "Already loged in"})
         }catch(error){
         try{
             const token = await auth.attempt(request.input('email'), request.input('password'))
@@ -58,7 +59,7 @@ class UserController {
                 token: token
             })
        }catch(e){
-            response.unauthorized("Email and password does not match any credential")
+            response.status(401).json({massage: "Email and password does not match any credential"})
        }
     }
     }
@@ -78,7 +79,7 @@ class UserController {
                 })
             }
         }catch(e){
-            response.unauthorized("You are not loged in")
+            response.status(401).json({massage: "You are not loged in"})
         }
 
     }
@@ -142,9 +143,9 @@ class UserController {
         }
     }
     async getUser({params, response}){
-            try{
+            //try{
                 const user = await User.query().where("id",params.id).first()
-                const posts = await Post.query().where("user_id",user.id).where("status","Approved").orderBy("created_at").limit(5).fetch()
+                const posts = await Database.select("*").from('posts').where("user_id",user.id).where("status","Approved").orderBy("created_at").limit(5)
                 for(let post of posts){
                     post["user_fullname"] = user.fullname
                 }
@@ -153,12 +154,12 @@ class UserController {
                     user: user,
                     posts: posts
                 })
-            }catch(e){
+            //}catch(e){
                 return response.status(500).json({
                     massage: "Error loading user",
                     error: e
                 })
-            }
+            //}
     }
 }
 

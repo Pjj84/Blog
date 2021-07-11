@@ -3,18 +3,18 @@ const User = use("App/Models/User")
 
 class ManagerController {
     async deleteUser({response, params}){
-        //try{
+        try{
             const user = await User.findOrFail(params.id)
             await user.delete()
             return response.status(200).json({
                 massage: "User deleted"
             })
-         //   }catch(e){
-          //  return response.status(500).json({
-           //     massage: "Error deleting user",
-           //     error: e
-           // })
-            //}
+            }catch(e){
+            return response.status(500).json({
+                massage: "Error deleting user",
+                error: e
+            })
+            }
     }
     async allUsers({response}){
         try{

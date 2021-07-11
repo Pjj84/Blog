@@ -21,12 +21,12 @@ class PostController {
         post.description = request.input('description') || null
 
         if(request.input('title')){post.title = request.input('title')}
-        else{return response.noContent("Title can not be empty")}
+        else{return response.status(204).json({massage: "Title can not be empty"})}
 
         if(request.input('content')){post.content = request.input('content')}
-        else{return response.noContent("Content can not be empty")}
+        else{return response.status(204).json({massage: "Content can not be empty"})}
 
-        if(request.input('tags').length == 0){return response.noContent("Tags can not be empty")}
+        if(request.input('tags').length == 0){return response.status(204).json({massage: "Tags can not be empty"})}
         post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
                                           //The code commented above must be added to code because the request... is an array
 
@@ -150,16 +150,16 @@ class PostController {
             })
         }
         if(request.input('title')){post.title = request.input('title')}
-        else{return response.noContent("Title cannot be empty")}
+        else{return response.status(204).json({massage: "Title cannot be empty"})}
 
         if(request.input('content')){post.content = request.input('content')}
-        else{return response.noContent("Content cannot be empty")}
+        else{return response.status(204).json({massage: "Content cannot be empty})"})}
 
         post.description = request.input('description') || null
 
         const tag_holder = post.tags //We need to keep the previous tags of the post for later use in tag handler
 
-        if(request.input('tags').length == 0){return response.noContent("Tags can not be empty")}
+        if(request.input('tags').length == 0){return response.status(204).json({massage: "Tags can not be empty"})}
         post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
                                           //The code commented above must be added to code because the request... is an array
 
@@ -285,9 +285,9 @@ class PostController {
         try{
             await post.delete()
             await creator.save()
-            return response.ok("Deleted succefully")
+            return response.status(200).json({mssage: "Deleted succefully"})
         }catch(e){
-            return response.json({
+            return response.status(500).json({
                 massage: "Error deleting post",
                 error: e
             })
@@ -334,8 +334,7 @@ class PostController {
                     posts: posts
                 })
             }
-        }catch(e){return response.status(500).json({massage: "Error loading posts"})}
-        
+        }catch(e){return response.status(500).json({massage: "Error loading posts"})}  
     
     }
     async like({params, auth, response}){
