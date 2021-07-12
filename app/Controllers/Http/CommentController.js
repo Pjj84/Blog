@@ -18,10 +18,15 @@ class CommentController {
         }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
+            if(request.input("foreign name")){
             comment["foreign_name"] = request.input("foreign name")
+            }else{
+                return response.status(422).json({massage: "Field foreign name cannot be empty"})
+            }
         }
         comment['post_id'] = params['post_id'] //The id of the post
-        comment.text = request.input('text')
+        if(!request.input("text")){return response.status(422).json({massage: "Field text cannot be empty"})}
+            comment.text = request.input('text')
         comment["reply_to"] = params["comment_id"] || null
         comment.replies = ""
         try{
@@ -49,6 +54,7 @@ class CommentController {
                 })
             }
         }else{
+            //return request.input("foreign name")
             return response.status(200).json({
                 massage: "Comment saved succefully"
             })
@@ -74,9 +80,14 @@ class CommentController {
         }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
+            if(request.input("foreign_name")){
+                comment["foreign_name"] = request.input("foreign name")
+                }else{
+                    return response.status(422).json({massage: "Fied name cannot be empty"})
+                }
         }
         if(!request.input("text")){
-            return response.status(204).json({message: "Comment text can not be empty"})
+            return response.status(422).json({message: "Comment text can not be empty"})
         }
         comment.text = request.input('text')
         try{
