@@ -45,14 +45,10 @@ class AdminController {
     }
     async approvePost({request, params, response}){
         try{
-            try{
-            const post = await Post.findOrFail(params.id)
-            }catch(e){
-                return response.status(404).json({
-                    massage: "Post not found",
-                    error:e
-                })
-            }
+        const post = await Post.find(params.id)
+        if(!post){
+            return response.status(404).json({massage: "Post not found"})
+        }
         post["status"] = request.body.approvement
         await post.save()
         return response.status(200).json({
@@ -67,14 +63,10 @@ class AdminController {
     }
     async approveComment({request, params, response}){
         try{
-            try{
-                const Comment = await Comment.findOrFail(params.id)
-                }catch(e){
-                    return response.status(404).json({
-                        massage: "Comment not found",
-                        error:e
-                    })
-                }
+        const comment = await Comment.find(params.id)
+        if(!comment){
+            return response.status(404).json({massage: "Comment not found"})
+        }
         comment["status"] = request.body.approvement
         await comment.save()
         return response.status(200).json({

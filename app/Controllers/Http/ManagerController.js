@@ -3,8 +3,11 @@ const User = use("App/Models/User")
 
 class ManagerController {
     async deleteUser({response, params}){
+        const user = await User.find(params.id)
+        if(!user){
+            return response.status(404).json({massage: "User not found"})
+        }
         try{
-            const user = await User.findOrFail(params.id)
             await user.delete()
             return response.status(200).json({
                 massage: "User deleted"
@@ -32,8 +35,11 @@ class ManagerController {
 
     }
     async promote({request, params, response}){
+        const user = await User.find(params.id)
+        if(!user){
+            return response.status(404).json({massage: "User not found"})
+        }
         try{
-        const user = await User.findOrFail(params.id)
         user.role = "Admin"
         await user.save()
         return response.status(200).json({
@@ -47,8 +53,11 @@ class ManagerController {
         }
     }
     async demote({params, response}){
+        const user = await User.find(params.id)
+        if(!user){
+            return response.status(404).json({massage: "User not found"})
+        }
         try{
-            const user = await User.findOrFail(params.id)
             user.role = "User" 
             await user.save()
             return response.status(200).json({
