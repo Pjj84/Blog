@@ -54,7 +54,7 @@ Route.delete("/deletecomment/:id","CommentController.delete").as("deleteComment"
 
 Route.get("/showcomments/:id","CommentController.show").as("showComment")
 
-Route.get("/pic/:id","UserController.profilePic").as("profilePic")
+Route.get("/pic/:id?","UserController.profilePic").as("profilePic")
 
 Route.get("/img/:id","PostController.postPic").as("postImage")
 

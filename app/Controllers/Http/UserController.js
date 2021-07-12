@@ -84,8 +84,9 @@ class UserController {
 
     }
     async profilePic({params, response}){
-        const user = await User.findOrFail(params.id)
-        return response.status(200).download(Helpers.tmpPath(`profiles/${user['profile_pic']}`))
+        const user = await User.find(params.id)
+        const pic = user && user["profile_pic"] ? user["profile_pic"] : "default.jpg"
+        return response.status(200).download(Helpers.tmpPath(`profiles/${pic}`))
     }
     async edit({request, response, auth}){
         const user = await auth.getUser()
@@ -143,7 +144,7 @@ class UserController {
         }
     }
     async getUser({params, response}){
-            //try{
+            try{
                 const user = await User.query().where("id",params.id).first()
                 const posts = await Database.select("*").from('posts').where("user_id",user.id).where("status","Approved").orderBy("created_at").limit(5)
                 for(let post of posts){
@@ -154,12 +155,12 @@ class UserController {
                     user: user,
                     posts: posts
                 })
-            //}catch(e){
+            }catch(e){
                 return response.status(500).json({
                     massage: "Error loading user",
                     error: e
                 })
-            //}
+            }
     }
 }
 
