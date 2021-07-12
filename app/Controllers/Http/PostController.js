@@ -143,7 +143,10 @@ class PostController {
         const user = await auth.getUser()
 
         //Editing the post
-        const post = await Post.findOrFail(params.id)
+        const post = await Post.find(params.id)
+        if(!post){
+            return response.status(404).json({massage: "Post not found"})
+        }
         if(post["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
             return response.status(401).json({
                 massage: "Only the manager, admin and creator of the post can edit this post"
@@ -258,14 +261,20 @@ class PostController {
                 })
     }
     async delete({response, params, auth}){
-        const post = await Post.findOrFail(params.id)
+        const post = await Post.find(params.id)
+        if(!post){
+            return response.status(404).json({massage: "Post not found"})
+        }
         const user = await auth.getUser()
         if(post["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){
             return response.status(401).json({
                 massage: "Only the manager, admin and creator of the post can delete this post"
             })
         }
-        const creator = await User.findOrFail(post["user_id"])
+        const creator = await User.find(post["user_id"])
+        if(!creator){
+            return response.status(404).json({massage: "The creator of the post not found"})
+        }
         creator["posts_count"] = creator["posts_count"] - 1
         for(let holder of post.tags.split(",")){
             const tag = await Tag.query().where("text", holder).first()
@@ -339,7 +348,10 @@ class PostController {
     }
     async like({params, auth, response}){
             const user = await auth.getUser()
-            const post = await Post.findOrFail(params.id)
+            const post = await Post.find(params.id)
+            if(!post){
+                return response.status(404).json({massage: "Post not found"})
+            }
             let like = await Like.query().where("user_id",user.id).where("post_id",post.id).first()
             if(like){
                 post.likes = post.likes - 1
@@ -375,7 +387,10 @@ class PostController {
             }
     }
     async postPic({params, response}){
-        const post = await Post.findOrFail(params.id)
+        const post = await Post.find(params.id)
+        if(!post){
+            return response.status(404).json({massage: "Post not found"})
+        }
         return response.status(200).download(Helpers.tmpPath(`posts/${post.image}`))
     }
     async singlePost({params, response, auth}){
@@ -388,7 +403,10 @@ class PostController {
         try{
         const user = await auth.getUser()
         const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
-        const creator = await User.findOrFail(post["user_id"])
+        const creator = await User.find(post["user_id"])
+        if(!creator){
+            return response.status(404).json({massage: "The creator of the post not found"})
+        }
         post["user_fullname"] = creator.fullname
         const like = await Like.query().where("post_id",post.id).where("user_id",user.id).first()
         if(like){
@@ -403,7 +421,10 @@ class PostController {
         })
         }catch(e){
             const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
-            const creator = await User.findOrFail(post["user_id"])
+            const creator = await User.find(post["user_id"])
+            if(!creator){
+                return response.status(404).json({massage: "The creator of the post not found"})
+            }
             post["user_fullname"] = creator.fullname
             post.coments = comment
             return response.status(200).json({

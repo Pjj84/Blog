@@ -38,7 +38,10 @@ class CommentController {
             })
         }
         if(params['comment_id']){
-            const replied_comment = await Comment.findOrFail(params['comment_id'])
+            const replied_comment = await Comment.find(params['comment_id'])
+            if(!replied_comment){
+                return response.status(404).json({massage: "The comment you are trying to reply does not exist"})
+            }
             const array = replied_comment.replies ? replied_comment.replies.split(",") : [] 
             array.push(comment.id)
             replied_comment.replies = array.toString().substring(0,array.toString().length + 1)
@@ -104,7 +107,10 @@ class CommentController {
         }
     }
     async delete({params, response, auth}){
-        const comment = await Comment.findOrFail(params.id)
+        const comment = await Comment.find(params.id)
+        if(!comment){
+            return response.status(404).json({masage: "Comment not found"})
+        }
         try{
         const user = await auth.getUser()
         if(comment["user_id"] == null){
