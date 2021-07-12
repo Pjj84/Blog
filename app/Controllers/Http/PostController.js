@@ -426,7 +426,7 @@ class PostController {
                 return response.status(404).json({massage: "The creator of the post not found"})
             }
             post["user_fullname"] = creator.fullname
-            post.coments = comment
+            post.comments = comment
             return response.status(200).json({
                 massage: "Post loaded successfully",
                 post: post
