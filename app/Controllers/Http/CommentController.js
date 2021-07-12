@@ -18,6 +18,7 @@ class CommentController {
         }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
+            comment["foreign_name"] = request.input("foreign name")
         }
         comment['post_id'] = params['post_id'] //The id of the post
         comment.text = request.input('text')
