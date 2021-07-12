@@ -45,14 +45,10 @@ class AdminController {
     }
     async approvePost({request, params, response}){
         try{
-            try{
-            const post = await Post.findOrFail(params.id)
-            }catch(e){
-                return response.status(404).json({
-                    massage: "Post not found",
-                    error:e
-                })
-            }
+        const post = await Post.find(params.id)
+        if(!post){
+            return response.status(404).json({massage: "Post not found"})
+        }
         post["status"] = request.body.approvement
         await post.save()
         return response.status(200).json({

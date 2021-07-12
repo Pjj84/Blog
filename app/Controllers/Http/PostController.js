@@ -396,19 +396,19 @@ class PostController {
         }else{
             post["is_liked"] = false
         }
+        post.comments = comment
         return response.status(200).json({
             massage: "Post loaded successfully",
-            post: post,
-            comment: comment
+            post: post
         })
         }catch(e){
             const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
             const creator = await User.findOrFail(post["user_id"])
             post["user_fullname"] = creator.fullname
+            post.coments = comment
             return response.status(200).json({
                 massage: "Post loaded successfully",
-                post: post,
-                comment: comment
+                post: post
             })
         }
         
