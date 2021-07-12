@@ -11,8 +11,8 @@ class CommentController {
     async create({request, response, auth, params}){
         const comment = new Comment
         try{
-        const user = await auth.getUser()
-        comment["status"] = "Approved"
+            const user = await auth.getUser()
+            comment["status"] = "Approved"
             comment['user_id'] = user.id
             user["comments_count"] = user["comments_count"] + 1
         }catch(e){
@@ -23,6 +23,10 @@ class CommentController {
             }else{
                 return response.status(422).json({massage: "Field foreign name cannot be empty"})
             }
+        }
+        const post = await Post.find(params["post_id"])
+        if(!post){
+            return response.status(404).json({massage: "Post not found"})
         }
         comment['post_id'] = params['post_id'] //The id of the post
         if(!request.input("text")){return response.status(422).json({massage: "Field text cannot be empty"})}
@@ -59,13 +63,16 @@ class CommentController {
         }else{
             //return request.input("foreign name")
             return response.status(200).json({
-                massage: "Comment saved succefully"
+                massage: "Comment created succefully"
             })
         }
 
     }
     async edit({auth, request, response, params}){
         const comment = await Comment.find(params.id)
+        if(!comment){
+            return response.status(404).json({massage: "Comment not found"})
+        }
         try{
         const user = await auth.getUser()
             if(comment["user_id"] == null){
@@ -83,7 +90,7 @@ class CommentController {
         }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
-            if(request.input("foreign_name")){
+            if(request.input("foreign name")){
                 comment["foreign_name"] = request.input("foreign name")
                 }else{
                     return response.status(422).json({massage: "Fied name cannot be empty"})

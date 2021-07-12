@@ -7,7 +7,7 @@ const Database = use("Database")
 class TagController {
     async populars({response}){
         try{
-            const tags = await Tag.query().where("posts_count",">=","10").fetch()
+            const tags = await Tag.query().where("posts_count",">=","1").orderBy("posts_count","desc").fetch()
             return response.status(200).json({
                 massage: "Tags loaded successfully",
                 tags: tags
@@ -23,7 +23,7 @@ class TagController {
         try{
             const tag = await Tag.query().where("text",params.tag).first()
             const posts_ids = tag["posts_id"].split(",")
-            const posts = await Post.query().whereIn("id", posts_ids).fetch()
+            const posts = await Post.query().whereIn("id", posts_ids).where("status","Approved").fetch()
             return response.status(200).json({
                 massage: "Posts loaded successfully",
                 posts: posts

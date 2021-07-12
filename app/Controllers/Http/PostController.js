@@ -306,11 +306,7 @@ class PostController {
         //Here $ is used for variable posts to prevent pollution within other functions and declared a const post to used the $posts value outside of its block scope
         const user = await auth.getUser()
         try{
-        if(user.role == "Manager" || user.role == "Admin"){
-            var $posts = await Database.select("*").from('posts').orderBy("created_at",'desc')
-        }else{
             var $posts = await Database.select("*").from('posts').where("user_id",user.id).orderBy("created_at",'desc')
-        }
         try{
             const posts = $posts
             for(let post of posts){

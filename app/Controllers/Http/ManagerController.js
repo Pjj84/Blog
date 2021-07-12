@@ -7,6 +7,9 @@ class ManagerController {
         if(!user){
             return response.status(404).json({massage: "User not found"})
         }
+        if(user.role == "Manager"){
+            return response.status(401).json({massage: "You can not kick a manager"})
+        }
         try{
             await user.delete()
             return response.status(200).json({
