@@ -30,6 +30,9 @@ class CommentController {
             return response.status(404).json({massage: "Post not found"})
         }
         comment['post_id'] = params['post_id'] //The id of the post
+        if(params.name){
+        comment["in_reply_to"] = params.name
+        }
         if(!request.input("text")){return response.status(422).json({massage: "Field text cannot be empty"})}
             comment.text = request.input('text')
         comment["reply_to"] = params["comment_id"] || null
@@ -144,7 +147,14 @@ class CommentController {
     }
     async show({params, response}){
         try{
-        const comments = await Comment.query().where("post_id",params.id).where("status","Approved").orderBy("created_at","desc").fetch()
+        const comments = await Database.select("*").from("comments").where("post_id",params.id).where("status","Approved").where("reply_to",null).orderBy("created_at","desc")
+        for(let comment of comments){
+            const replies = comment.replies ? comment.replies.split(",") : []
+            comment["replying_comments"] = []
+            for(let i=0;i<replies.length;i++){
+                comment["replying_comments"].push(await Comment.find(replies[i]))
+            }
+        }
         return response.status(200).json({
             massage: "Comments loaded successfully" ,
             comments: comments

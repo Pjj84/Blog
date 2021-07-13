@@ -400,7 +400,14 @@ class PostController {
         }
         try{
         const user = await auth.getUser()
-        const comments = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
+        const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").orderBy("created_at")
+        for(let comment of comments){
+            const replies = comment.replies ? comment.replies.split(",") : []
+            comment["replying_comments"] = []
+            for(let i=0;i<replies.length;i++){
+                comment["replying_comments"].push(await Comment.find(replies[i]))
+            }
+        }
         const creator = await User.find(post["user_id"])
         if(!creator){
             return response.status(404).json({massage: "The creator of the post not found"})
@@ -418,13 +425,20 @@ class PostController {
             post: post
         })
         }catch(e){
-            const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
+            const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").orderBy("created_at")
+            for(let comment of comments){
+                const replies = comment.replies ? comment.replies.split(",") : []
+                comment["replying_comments"] = []
+                for(let i=0;i<replies.length;i++){
+                    comment["replying_comments"].push(await Comment.find(replies[i]))
+                }
+            }
             const creator = await User.find(post["user_id"])
             if(!creator){
                 return response.status(404).json({massage: "The creator of the post not found"})
             }
             post["user_fullname"] = creator.fullname
-            post.comments = comment
+            post.comments = comments
             return response.status(200).json({
                 massage: "Post loaded successfully",
                 post: post

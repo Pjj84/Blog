@@ -46,7 +46,7 @@ Route.get("/myposts","PostController.showControlled").as("myposts").middleware("
 
 Route.post("/like/:id","PostController.like").as("like").middleware("auth")
 
-Route.post("/comment/:post_id/:comment_id?","CommentController.create").as("comment")
+Route.post("/comment/:post_id/:comment_id?/:name?","CommentController.create").as("comment")
 
 Route.put("/editcomment/:id","CommentController.edit").as("editComment")
 

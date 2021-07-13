@@ -7,7 +7,7 @@ const Database = use("Database")
 class AdminController {
     async pendingPosts({response}){
         try{
-        const posts = await Database.select("*").from('posts').where("status","Pending").orderBy("created_at", "asc")
+        const posts = await Database.select("*").from('posts').whereNot("status","Approved").orderBy("created_at", "asc")
         for(let post of posts){
             const user = await User.query().where("id",post["user_id"]).first()
             post["user_fullname"] = user.fullname
@@ -25,7 +25,7 @@ class AdminController {
     }
     async pendingComments({response}){
         try{
-        const comments = await Database.select("*").from("comments").where("status","Pending").orderBy("created_at","asc")
+        const comments = await Database.select("*").from("comments").whereNot("status","Approved").orderBy("created_at","asc")
         return response.status(200).json({
             massage: "Comments loaded succefully",
             comments: comments

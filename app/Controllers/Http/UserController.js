@@ -13,7 +13,7 @@ class UserController {
             user.email = request.input('email')
             user["posts_count"] = 0
             user["comments_count"] = 0
-            user.role = "Manager"
+            user.role = "User"
             user.description = request.input('description')
 
         if(request.file('pic')){
