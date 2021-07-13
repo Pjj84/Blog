@@ -18,6 +18,8 @@ class PostController {
 
         post['user_id'] =  user.id
 
+        post["user_fullname"] = user.fullname
+
         post.description = request.input('description') || null
 
         if(request.input('title')){post.title = request.input('title')}
@@ -398,7 +400,7 @@ class PostController {
         }
         try{
         const user = await auth.getUser()
-        const comment = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
+        const comments = await Comment.query().where("post_id",post.id).where("status","Approved").orderBy("created_at").fetch()
         const creator = await User.find(post["user_id"])
         if(!creator){
             return response.status(404).json({massage: "The creator of the post not found"})
@@ -410,7 +412,7 @@ class PostController {
         }else{
             post["is_liked"] = false
         }
-        post.comments = comment
+        post.comments = comments
         return response.status(200).json({
             massage: "Post loaded successfully",
             post: post

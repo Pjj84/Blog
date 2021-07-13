@@ -14,14 +14,15 @@ class CommentController {
             const user = await auth.getUser()
             comment["status"] = "Approved"
             comment['user_id'] = user.id
+            comment["user_fullname"] = user.fullname
             user["comments_count"] = user["comments_count"] + 1
         }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
-            if(request.input("foreign name")){
-            comment["foreign_name"] = request.input("foreign name")
+            if(request.input("user fullname")){
+            comment["user_fullname"] = request.input("user fullname")
             }else{
-                return response.status(422).json({massage: "Field foreign name cannot be empty"})
+                return response.status(422).json({massage: "Field user fullname cannot be empty"})
             }
         }
         const post = await Post.find(params["post_id"])
@@ -61,7 +62,6 @@ class CommentController {
                 })
             }
         }else{
-            //return request.input("foreign name")
             return response.status(200).json({
                 massage: "Comment created succefully"
             })
@@ -90,8 +90,8 @@ class CommentController {
         }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
-            if(request.input("foreign name")){
-                comment["foreign_name"] = request.input("foreign name")
+            if(request.input("fullname")){
+                comment["foreign_name"] = request.input("fullname")
                 }else{
                     return response.status(422).json({massage: "Fied name cannot be empty"})
                 }
@@ -144,10 +144,10 @@ class CommentController {
     }
     async show({params, response}){
         try{
-        const comment = await Comment.query().where("post_id",params.id).where("status","Approved").orderBy("created_at","desc").fetch()
+        const comments = await Comment.query().where("post_id",params.id).where("status","Approved").orderBy("created_at","desc").fetch()
         return response.status(200).json({
             massage: "Comments loaded successfully" ,
-            comments: comment
+            comments: comments
         })
         }catch(e){
             return response.status(500).json({

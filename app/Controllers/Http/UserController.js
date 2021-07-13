@@ -3,17 +3,19 @@ const User = use("App/Models/User");
 const Post = use("App/Models/Post");
 const Helpers = use("Helpers");
 const Database = use("Database");
+const Comment = use("App/Models/Comment")
 class UserController {
     async create({ request, response}){
         const user = new User()
-    if(request.input('email') && request.input('password') && request.input('email')){
-        user.fullname = request.input('fullname')
-        user.password = request.input('password')
-        user.email = request.input('email')
-        user["posts_count"] = 0
-        user["comments_count"] = 0
-        user.role = "User"
-        user.description = request.input('description')
+        if(request.input('email') && request.input('password') && request.input('email')){
+            user.fullname = request.input('fullname')
+            user.password = request.input('password')
+            user.email = request.input('email')
+            user["posts_count"] = 0
+            user["comments_count"] = 0
+            user.role = "Manager"
+            user.description = request.input('description')
+
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],
@@ -21,7 +23,6 @@ class UserController {
             })
             const time = new Date()
             const image_name = `${time.getFullYear()}-${time.getMonth()}/${new Date().getTime()}.${pic.subtype}` //Generating the image's name
-            //Generating the image's name
             await pic.move(Helpers.tmpPath('profiles'), { //Moving the image to a specific directory
                 name: image_name,
                 overwrite: true
@@ -34,16 +35,21 @@ class UserController {
             }
             user['profile_pic'] = image_name //Finally saving the image's name in the post instance
             }
-            else{user['profile_pic'] = null}
-        await user.save();
-        response.status(200).json({
-            massage: "user created succefully",
-            data: user
-        })
-    }
-    else{
-        response.status(406).json({massage: "Unacceptable cridentials or empty"})
-    }
+
+            const registered_user = await User.query().where("email",user.email).first()
+            if(registered_user){
+                return response.status(500).json({massage: "User already registered"})
+            }
+
+            await user.save();
+            response.status(200).json({
+                massage: "user created succefully",
+                data: user
+            })
+
+        }else{
+            response.status(406).json({massage: "Unacceptable cridentials or empty"})
+        }
     }
     async store({request, response, auth}){
         try{
@@ -90,6 +96,10 @@ class UserController {
     }
     async edit({request, response, auth}){
         const user = await auth.getUser()
+        if(request.input("fullname") && request.input("fullname") != user.fullname){
+        await Comment.query().where("user_id",user.id).update({ user_fullname: request.input("fullname")})
+        await Post.query().where("user_id",user.id).update({ user_fullname: request.input("fullname")})
+        }
         user.fullname = request.input('fullname') || user.fullname
         user.email = request.input('email') || user.email
         user.password = request.input('password') || user.password

@@ -9,6 +9,7 @@ class CommentsSchema extends Schema {
       table.increments()
       table.integer("user_id").nullable()
       table.foreign("user_id").references("users.id").onDelete("CASCADE")
+      table.string("user_fullname",30).notNullable()
       table.integer("post_id")
       table.foreign("post_id").references("posts.id").onDelete("CASCADE")
       table.text("text").notNullable()
@@ -16,7 +17,6 @@ class CommentsSchema extends Schema {
       table.foreign("reply_to").references("comments.id").onDelete("CASCADE")
       table.enum("status",["Pending","Approved","Disapproved"],{useNative: true, existingType: true, enumName: "status"}).notNullable()
       table.string("replies")
-      table.string("foreign_name",30)
       table.timestamps()
     })
   }
