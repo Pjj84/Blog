@@ -400,7 +400,7 @@ class PostController {
         }
         try{
         const user = await auth.getUser()
-        const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").orderBy("created_at")
+        const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").where("reply_to",null).orderBy("created_at")
         for(let comment of comments){
             const replies = comment.replies ? comment.replies.split(",") : []
             comment["replying_comments"] = []
@@ -425,7 +425,7 @@ class PostController {
             post: post
         })
         }catch(e){
-            const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").orderBy("created_at")
+            const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").where("reply_to",null).orderBy("created_at")
             for(let comment of comments){
                 const replies = comment.replies ? comment.replies.split(",") : []
                 comment["replying_comments"] = []

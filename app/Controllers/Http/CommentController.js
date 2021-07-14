@@ -19,7 +19,7 @@ class CommentController {
         }catch(e){
             comment["status"] = "Pending"
             comment["user_id"] = null
-            if(request.input("user fullname")){
+            if(request.input("fullname")){
             comment["user_fullname"] = request.input("fullname")
             }else{
                 return response.status(422).json({massage: "Field user fullname cannot be empty"})
@@ -150,7 +150,7 @@ class CommentController {
     }
     async show({params, response}){
         try{
-        const comments = await Database.select("*").from("comments").where("post_id",params.id).where("status","Approved").where("reply_to",null).orderBy("created_at","desc")
+        const comments = await Database.select("*").from("comments").where("post_id",params.id).where("status","Approved").whereNot("reply_to",null).orderBy("created_at","desc")
         for(let comment of comments){
             const replies = comment.replies ? comment.replies.split(",") : []
             comment["replying_comments"] = []
