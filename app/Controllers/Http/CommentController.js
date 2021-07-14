@@ -20,7 +20,7 @@ class CommentController {
             comment["status"] = "Pending"
             comment["user_id"] = null
             if(request.input("user fullname")){
-            comment["user_fullname"] = request.input("user fullname")
+            comment["user_fullname"] = request.input("fullname")
             }else{
                 return response.status(422).json({massage: "Field user fullname cannot be empty"})
             }
@@ -47,6 +47,9 @@ class CommentController {
         }
         if(params['comment_id']){
             const replied_comment = await Comment.find(params['comment_id'])
+            if(replied_comment["reply_to"]){
+                return response.status(400).json({massage: "Cannot reply to a replying comment"})
+            }
             if(!replied_comment){
                 return response.status(404).json({massage: "The comment you are trying to reply does not exist"})
             }
