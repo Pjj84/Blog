@@ -150,12 +150,15 @@ class CommentController {
     }
     async show({params, response}){
         try{
-        const comments = await Database.select("*").from("comments").where("post_id",params.id).where("status","Approved").whereNot("reply_to",null).orderBy("created_at","desc")
+        const comments = await Database.select("*").from("comments").where("post_id",params.id).where("status","Approved").where("reply_to",null).orderBy("created_at","desc")
         for(let comment of comments){
             const replies = comment.replies ? comment.replies.split(",") : []
             comment["replying_comments"] = []
             for(let i=0;i<replies.length;i++){
-                comment["replying_comments"].push(await Comment.find(replies[i]))
+                const partial_comment = await Comment.find(replies[i])
+                if(partial_comment.status == "Approved"){
+                comment["replying_comments"].push(partial_comment)
+                }
             }
         }
         return response.status(200).json({
