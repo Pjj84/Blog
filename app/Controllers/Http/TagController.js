@@ -19,21 +19,25 @@ class TagController {
             })
         }
     }
-    async posts({response, params}){
-        try{
-            const tag = await Tag.query().where("text",params.tag).first()
-            const posts_ids = tag["posts_id"].split(",")
+    async posts({request, response}){
+        //try{
+            const tag_finder = request.body.tag
+            const tag = await Tag.query().where("text",tag_finder).first()
+            const posts_ids = tag && tag["posts_id"] && tag["posts_id"] != "" ? tag["posts_id"].split(",") : []
+            for(let i=0;i<posts_ids.length;i++){
+                posts_ids[i] = parseInt(posts_ids[i])
+            }
             const posts = await Post.query().whereIn("id", posts_ids).where("status","Approved").fetch()
             return response.status(200).json({
                 massage: "Posts loaded successfully",
                 posts: posts
             })
-        }catch(e){
+        //}catch(e){
             return response.status(500).json({
                 massage: "Error loading posts",
                 error: e
             })
-        }
+        //}
     }
 }
 

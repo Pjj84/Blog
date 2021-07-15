@@ -77,8 +77,8 @@ class PostController {
         }
 
         //handling the tags
-        const ids = []
         for(let single_tag of request.input("tags").split(",")){//The split here must be removed because the request... is an array
+            single_tag = single_tag.trim()
             const tag = await Tag.query().where("text",single_tag).first()
             if(tag){
                 const ids = tag["posts_id"].split(",")
@@ -87,7 +87,7 @@ class PostController {
                 tag["posts_count"] = tag["posts_count"] + 1
             }else{
             var $tag = new Tag
-                $tag.text = single_tag
+                $tag.text = single_tag.trim()
             //const $post = await Post.last()
                 $tag["posts_id"] = post.id.toString() //$post.id + 1
                 $tag["posts_count"] = 1
@@ -163,11 +163,14 @@ class PostController {
         post.description = request.input('description') || null
 
         const tag_holder = post.tags //We need to keep the previous tags of the post for later use in tag handler
-
         if(request.input('tags').length == 0){return response.status(422).json({massage: "Tags can not be empty"})}
-        post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
-                                          //The code commented above must be added to code because the request... is an array
-
+        post.tags = ""
+        for(let tag of request.input('tags').split(",")){ //the split should be commented
+            tag = tag.trim()
+            post.tags += `,${tag}`
+        }
+        post.tags = post.tags.substring(1,post.tags.length)
+        //The code commented above must be added to code because the request... is an array
         if(request.file('post')){
 
         const pic = request.file('post', { //Getting the image from request
@@ -214,9 +217,8 @@ class PostController {
         }
 
         //handling the tags
-                const ids = []
                 for(let holder of post.tags.split(",")){//The split here must be removed because the request... is an array
-                if(!tag_holder.includes(holder)){ //Check if the revious tag is still or not
+                if(!tag_holder.includes(holder)){ //Check if the prevoius tags include this new tag or not
                     const tag = await Tag.query().where("text",holder).first()
                     if(tag){
                         const ids = tag["posts_id"].split(",")
@@ -225,7 +227,7 @@ class PostController {
                         tag["posts_count"] = tag["posts_count"] + 1
                     }else{
                     var $tag = new Tag
-                        $tag.text = holder
+                        $tag.text = holder.trim()
                     //const $post = await Post.last()
                         $tag["posts_id"] = post.id.toString() //$post.id + 1
                         $tag["posts_count"] = 1
@@ -242,7 +244,7 @@ class PostController {
                     }
                 }
                 for(let holder of tag_holder.split(",")){
-                    if(!post.tags.includes(holder)){ //Check if the previous tag 
+                    if(!post.tags.includes(holder)){ //Check if the previous tag is still or not 
                         const tag = await Tag.query().where("text", holder).first()
                         const helper_var = tag["posts_id"].split(",")
                         const id_index = helper_var.indexOf(post.id.toString())
