@@ -155,15 +155,12 @@ class PostController {
             })
         }
         if(request.input('title')){post.title = request.input('title')}
-        else{return response.status(422).json({massage: "Title cannot be empty"})}
 
         if(request.input('content')){post.content = request.input('content')}
-        else{return response.status(422).json({massage: "Content cannot be empty})"})}
 
-        post.description = request.input('description') || null
+        if(request.input('description')){post.description = request.input('description')}
 
         const tag_holder = post.tags //We need to keep the previous tags of the post for later use in tag handler
-        if(request.input('tags').length == 0){return response.status(422).json({massage: "Tags can not be empty"})}
         post.tags = ""
         for(let tag of request.input('tags').split(",")){ //the split should be commented
             tag = tag.trim()
@@ -197,7 +194,6 @@ class PostController {
         post.image = await image_name //Finally saving the image's name in the post instance
 
         }
-        else{post.image = null}
 
         //Determining wether the post should be approved ot not
         if(user.role == 'Admin' || user.role == "Manager"){
