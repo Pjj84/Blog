@@ -15,6 +15,7 @@ class UserSchema extends Schema {
       table.string("profile_pic").defaultTo("uploads/default.jpg")
       table.integer("comments_count")
       table.text("description",140).defaultTo("I am a user of this blog")
+      table.string("reading_list")
       table.timestamps()
     })
   }

@@ -403,6 +403,7 @@ class PostController {
         try{
         const user = await auth.getUser()
         const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").where("reply_to",null).orderBy("created_at")
+        let counter = comment.length
         for(let comment of comments){
             const replies = comment.replies ? comment.replies.split(",") : []
             comment["replying_comments"] = []
@@ -410,6 +411,7 @@ class PostController {
                 const partial_comment = await Comment.find(replies[i])
                 if(partial_comment.status == "Approved"){
                 comment["replying_comments"].push(partial_comment)
+                counter++
                 }
             }
         }
@@ -425,12 +427,14 @@ class PostController {
             post["is_liked"] = false
         }
         post.comments = comments
+        post["comments_count"] = counter
         return response.status(200).json({
             massage: "Post loaded successfully",
             post: post
         })
         }catch(e){
             const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").where("reply_to",null).orderBy("created_at")
+            let counter = comments.length
             for(let comment of comments){
                 const replies = comment.replies ? comment.replies.split(",") : []
                 comment["replying_comments"] = []
@@ -438,6 +442,7 @@ class PostController {
                     const partial_comment = await Comment.find(replis[i])
                     if(partial_comment.status == "Approved"){
                     comment["replying_comments"].push(partial_comment)
+                    counter++
                     }
                 }
             }
@@ -447,6 +452,7 @@ class PostController {
             }
             post["user_fullname"] = creator.fullname
             post.comments = comments
+            post["comment_count"] = counter
             return response.status(200).json({
                 massage: "Post loaded successfully",
                 post: post

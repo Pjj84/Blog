@@ -151,6 +151,7 @@ class CommentController {
     async show({params, response}){
         try{
         const comments = await Database.select("*").from("comments").where("post_id",params.id).where("status","Approved").where("reply_to",null).orderBy("created_at","desc")
+        let counter = comment.length
         for(let comment of comments){
             const replies = comment.replies ? comment.replies.split(",") : []
             comment["replying_comments"] = []
@@ -158,12 +159,14 @@ class CommentController {
                 const partial_comment = await Comment.find(replies[i])
                 if(partial_comment.status == "Approved"){
                 comment["replying_comments"].push(partial_comment)
+                counter++
                 }
             }
         }
         return response.status(200).json({
             massage: "Comments loaded successfully" ,
-            comments: comments
+            comments: comments,
+            comment_counts: counter
         })
         }catch(e){
             return response.status(500).json({

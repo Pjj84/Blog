@@ -79,3 +79,9 @@ Route.put("/demote/:id",'ManagerController.demote').as("demote").middleware("man
 Route.get("/tags","TagController.populars").as("popularTags")
 
 Route.get("/tagedposts","TagController.posts").as("tagedPosts")
+
+Route.get("/readinglist","ReadingListController.load").as("savedPosts").middleware("auth")
+
+Route.put("/save","ReadingListController.add").as("save").middleware("auth")
+
+Route.put("/unsave","ReadingListController.remove").as("unsave").middleware("auth")
