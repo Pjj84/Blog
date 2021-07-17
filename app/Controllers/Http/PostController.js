@@ -159,9 +159,9 @@ class PostController {
         if(request.input('title')){post.title = request.input('title')}
 
         if(request.input('content')){post.content = request.input('content')}
-        console.log(request.input("description"))
+        
         if(request.input('description')){post.description = request.input('description')}
-        console.log(request.input("description"))
+
         const tag_holder = post.tags //We need to keep the previous tags of the post for later use in tag handler
         post.tags = ""
         for(let tag of request.input('tags').split(",")){ //the split should be commented

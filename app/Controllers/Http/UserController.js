@@ -103,7 +103,9 @@ class UserController {
         user.fullname = request.input('fullname') || user.fullname
         user.email = request.input('email') || user.email
         user.password = request.input('password') || user.password
+        console.log(user.description)
         user.description = request.input('description') || user.description
+        console.log(user.description)
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],
