@@ -29,9 +29,13 @@ class PostController {
         else{return response.status(422).json({massage: "Content can not be empty"})}
 
         if(request.input('tags').length == 0){return response.status(422).json({massage: "Tags can not be empty"})}
-        post.tags = request.input('tags') //.toString().substring(1,request.input('tags').length-1)
+        let arr = ""
+        for(let tag of request.input('tags').split(",")){
+            arr += `,${tag.trim()}`
+        }
+        arr = arr.substring(1,arr.length)
+        post.tags = arr //.toString().substring(1,request.input('tags').length-1)
                                           //The code commented above must be added to code because the request... is an array
-
         if(request.file('post')){
         const pic = request.file('post', { //Getting the image from request
             types: ['image'],
@@ -75,10 +79,8 @@ class PostController {
                 error: e
             })
         }
-
         //handling the tags
         for(let single_tag of request.input("tags").split(",")){//The split here must be removed because the request... is an array
-            single_tag = single_tag.trim()
             const tag = await Tag.query().where("text",single_tag).first()
             if(tag){
                 const ids = tag["posts_id"].split(",")
@@ -87,7 +89,7 @@ class PostController {
                 tag["posts_count"] = tag["posts_count"] + 1
             }else{
             var $tag = new Tag
-                $tag.text = single_tag.trim()
+                $tag.text = single_tag
             //const $post = await Post.last()
                 $tag["posts_id"] = post.id.toString() //$post.id + 1
                 $tag["posts_count"] = 1
@@ -399,7 +401,7 @@ class PostController {
         try{
         const user = await auth.getUser()
         const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").where("reply_to",null).orderBy("created_at")
-        let counter = comment.length
+        let counter = comments.length
         for(let comment of comments){
             const replies = comment.replies ? comment.replies.split(",") : []
             comment["replying_comments"] = []
@@ -435,7 +437,7 @@ class PostController {
                 const replies = comment.replies ? comment.replies.split(",") : []
                 comment["replying_comments"] = []
                 for(let i=0;i<replies.length;i++){
-                    const partial_comment = await Comment.find(replis[i])
+                    //const partial_comment = await Comment.find(replis[i])
                     if(partial_comment.status == "Approved"){
                     comment["replying_comments"].push(partial_comment)
                     counter++

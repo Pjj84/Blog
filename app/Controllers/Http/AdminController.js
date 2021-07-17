@@ -43,6 +43,11 @@ class AdminController {
         if(!post){
             return response.status(404).json({massage: "Post not found"})
         }
+        if(request.body.approvement != "Approved" && request.body.approvement != "Disapproved" && request.body.approvement != "Pending"){
+            return response.status(422).json({
+                massage: "Unacceptable status"
+            })
+        }
         post["status"] = request.body.approvement
         await post.save()
         return response.status(200).json({
@@ -61,6 +66,11 @@ class AdminController {
         if(!comment){
             return response.status(404).json({massage: "Comment not found"})
         }
+        if(request.body.approvement != "Approved" && request.body.approvement != "Disapproved" && request.body.approvement != "Pending"){
+            return response.status(422).json({
+                massage: "Unacceptable status"
+            })
+        }
         comment["status"] = request.body.approvement
         await comment.save()
         return response.status(200).json({
@@ -68,7 +78,7 @@ class AdminController {
         })
         }catch(e){
             return response.status(500).json({
-                massage: "Error loading posts",
+                massage: "Error approving comment",
                 error: e
             })
         }
