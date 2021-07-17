@@ -136,7 +136,24 @@ class CommentController {
                 massage: "Only manager, admin and creator of the comment can delete this comment"
             })
            }
-        }catch(e){}
+        }catch(e){
+            if(comment["reply_to"] != null && comment["reply_to"] != ""){
+            const mother_comment = await Comment.find(comment["reply_to"])
+            if(!mother_comment){
+                return response.status(404).json({
+                    massage: "The replied comment not found"
+                })
+            }
+            const partial_replies = mother_comment.replies.split(",")
+            partial_replies.splice(partial_replies.indexOf(comment.id),1)
+            mother_comment.replies = partial_replies.toString()
+            try{
+                mother_comment.save()
+            
+            }catch(e){
+                return response.status(404).json({massage: "Error saveing replied comment"})
+            }
+        }
         try{
            comment.delete()
            return response.status(200).json({massage: "Comment deleted succesfully"})
@@ -145,6 +162,7 @@ class CommentController {
                 massage: "Error deleting comment",
                 error: e
             })
+        }
         }
 
     }
