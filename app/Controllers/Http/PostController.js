@@ -29,12 +29,12 @@ class PostController {
         else{return response.status(422).json({massage: "Content can not be empty"})}
 
         if(!request.input('tags') || request.input('tags').length == 0){return response.status(422).json({massage: "Tags can not be empty"})}
-        let arr = ""
+        post.tags = ""
         for(let tag of request.input('tags').split(",")){
-            arr += `,${tag.trim()}`
+            post.tags += `,${tag.trim()}`
         }
-        arr = arr.substring(1,arr.length)
-        post.tags = arr //.toString().substring(1,request.input('tags').length-1)
+        post.tags = post.tags.substring(1,arr.length)
+        //.toString().substring(1,request.input('tags').length-1)
                                           //The code commented above must be added to code because the request... is an array
         if(request.file('post')){
         const pic = request.file('post', { //Getting the image from request
@@ -159,9 +159,9 @@ class PostController {
         if(request.input('title')){post.title = request.input('title')}
 
         if(request.input('content')){post.content = request.input('content')}
-
+        console.log(request.input("description"))
         if(request.input('description')){post.description = request.input('description')}
-
+        console.log(request.input("description"))
         const tag_holder = post.tags //We need to keep the previous tags of the post for later use in tag handler
         post.tags = ""
         for(let tag of request.input('tags').split(",")){ //the split should be commented
