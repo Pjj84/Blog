@@ -33,7 +33,7 @@ class PostController {
         for(let tag of request.input('tags').split(",")){
             post.tags += `,${tag.trim()}`
         }
-        post.tags = post.tags.substring(1,arr.length)
+        post.tags = post.tags.substring(1,post.tags.length)
         //.toString().substring(1,request.input('tags').length-1)
                                           //The code commented above must be added to code because the request... is an array
         if(request.file('post')){
