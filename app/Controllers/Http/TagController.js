@@ -31,7 +31,8 @@ class TagController {
             const posts = await Post.query().whereIn("id", posts_ids).where("status","Approved").fetch()
             return response.status(200).json({
                 massage: "Posts loaded successfully",
-                posts: posts
+                posts: posts,
+                tag: tag
             })
         //}catch(e){
             return response.status(500).json({

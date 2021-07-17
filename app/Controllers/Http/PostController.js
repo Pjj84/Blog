@@ -28,7 +28,7 @@ class PostController {
         if(request.input('content')){post.content = request.input('content')}
         else{return response.status(422).json({massage: "Content can not be empty"})}
 
-        if(request.input('tags').length == 0){return response.status(422).json({massage: "Tags can not be empty"})}
+        if(!request.input('tags') || request.input('tags').length == 0){return response.status(422).json({massage: "Tags can not be empty"})}
         let arr = ""
         for(let tag of request.input('tags').split(",")){
             arr += `,${tag.trim()}`
@@ -425,7 +425,7 @@ class PostController {
             post["is_liked"] = false
         }
         post.comments = comments
-        post["comments_count"] = counter
+        post["comment_count"] = counter
         return response.status(200).json({
             massage: "Post loaded successfully",
             post: post
