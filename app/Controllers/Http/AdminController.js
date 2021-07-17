@@ -25,7 +25,7 @@ class AdminController {
     }
     async pendingComments({response}){
         try{
-        const comments = await Database.select("*").from("comments").whereNot("status","Approved").orderBy("created_at","asc")
+        const comments = await Database.select("*").from("comments").where("status","Pending").orderBy("created_at","asc")
         return response.status(200).json({
             massage: "Comments loaded succefully",
             comments: comments
