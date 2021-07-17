@@ -90,8 +90,7 @@ class PostController {
             }else{
             var $tag = new Tag
                 $tag.text = single_tag
-            //const $post = await Post.last()
-                $tag["posts_id"] = post.id.toString() //$post.id + 1
+                $tag["posts_id"] = post.id.toString() 
                 $tag["posts_count"] = 1
             }
             const helper_var = $tag || tag
