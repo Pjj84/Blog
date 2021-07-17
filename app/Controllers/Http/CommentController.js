@@ -148,14 +148,14 @@ class CommentController {
             partial_replies.splice(partial_replies.indexOf(comment.id),1)
             mother_comment.replies = partial_replies.toString()
             try{
-                mother_comment.save()
+                await mother_comment.save()
             
             }catch(e){
                 return response.status(404).json({massage: "Error saveing replied comment"})
             }
         }
         try{
-           comment.delete()
+           await comment.delete()
            return response.status(200).json({massage: "Comment deleted succesfully"})
         }catch(e){
             return response.status(500).json({
