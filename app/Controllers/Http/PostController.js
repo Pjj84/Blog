@@ -80,7 +80,7 @@ class PostController {
             })
         }
         //handling the tags
-        for(let single_tag of request.input("tags").split(",")){//The split here must be removed because the request... is an array
+        for(let single_tag of post.tags.split(",")){//The split here must be removed because the request... is an array
             const tag = await Tag.query().where("text",single_tag).first()
             if(tag){
                 const ids = tag["posts_id"].split(",")
