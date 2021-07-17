@@ -137,6 +137,10 @@ class CommentController {
             })
            }
         }catch(e){
+            if(!comment["user_id"] == null){
+                return response.status(401).json({message: "Anauthorized"})
+            }
+        }
             if(comment["reply_to"] != null && comment["reply_to"] != ""){
             const mother_comment = await Comment.find(comment["reply_to"])
             if(!mother_comment){
@@ -153,7 +157,6 @@ class CommentController {
             }catch(e){
                 return response.status(404).json({massage: "Error saveing replied comment"})
             }
-        }
         try{
            await comment.delete()
            return response.status(200).json({massage: "Comment deleted succesfully"})
