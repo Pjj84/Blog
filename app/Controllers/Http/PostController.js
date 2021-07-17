@@ -437,7 +437,7 @@ class PostController {
                 const replies = comment.replies ? comment.replies.split(",") : []
                 comment["replying_comments"] = []
                 for(let i=0;i<replies.length;i++){
-                    //const partial_comment = await Comment.find(replis[i])
+                    const partial_comment = await Comment.find(replies[i])
                     if(partial_comment.status == "Approved"){
                     comment["replying_comments"].push(partial_comment)
                     counter++
