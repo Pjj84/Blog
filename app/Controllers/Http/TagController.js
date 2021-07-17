@@ -23,7 +23,7 @@ class TagController {
         //try{
             const query = request.get()
             const text = query.tag
-            const tag = await Tag.query().where("text",text).first()
+            const tag = await Tag.find(text)
             const posts_ids = tag && tag["posts_id"] && tag["posts_id"] != "" ? tag["posts_id"].split(",") : []
             for(let i=0;i<posts_ids.length;i++){
                 posts_ids[i] = parseInt(posts_ids[i])
