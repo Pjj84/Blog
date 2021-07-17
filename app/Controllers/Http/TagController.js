@@ -41,6 +41,9 @@ class TagController {
             })
         //}
     }
+    async all({response}){
+        return response.json({tag: await Tag.all()})
+    }
 }
 
 module.exports = TagController
