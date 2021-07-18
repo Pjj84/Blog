@@ -114,16 +114,10 @@ class PostController {
     }
 
     async showAll({response , auth}){
-       //try{
+       try{
             const current_user = await auth.getUser() //We need the user.id to find his/her likes
             const likes = await Database.select("post_id").from('likes').where('user_id',current_user.id) //The like objects that user has made before
             const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
-
-            //for(let like of likes){
-
-                //liked_posts_ids.push(like.post_id)
-
-            //}
 
             for(let post of posts){
 
@@ -140,25 +134,13 @@ class PostController {
                 const user = await User.find(post.user_id)
                 post.user_fullname = user.fullname
 
-                if(current_user.reading_list && current_user.reading_list != ""){
-                    
-                    if(current_user.reading_list.split(",").includes(post.id.toString())){
-
-                        post.is_saved = true
-
-                    }else{
-        
-                        post.is_saved = false
-
-                    }
-                }
             }   
 
             return response.status(200).json({posts: posts})
 
-        //}catch(e){
+        }catch(e){
 
-            //const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
+            const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
 
             for(let post of posts){ //Getting the user fullname here by query, because it might change while edit profile
 
@@ -169,7 +151,7 @@ class PostController {
 
             return response.status(200).json({posts: posts})
 
-        // }
+        }
 
     }
     async edit({request, response, params, auth}){
@@ -185,17 +167,6 @@ class PostController {
         if(request.input('content')){post.content = request.input('content')}
         
         if(request.input('description')){post.description = request.input('description')}
-
-        const tag_holder = post.tags //We need to keep the previous tags of the post for later use in tag handler
-        post.tags = ""
-
-        for(let tag of request.input('tags').split(",")){
-
-            post.tags += `,${tag.trim()}`
-
-        }
-
-        post.tags = post.tags.substring(1,post.tags.length)
 
         if(request.file('post')){
 
@@ -226,77 +197,6 @@ class PostController {
             //return response.status(500).json({massage: "Error editing post",error: e})
 
         //}
-
-        //Checking each new tag to see if it was in the last set tags or not
-        for(let new_tag of post.tags.split(",")){
-
-            if(!tag_holder.includes(new_tag)){
-
-                let tag = await Tag.query().where("text",new_tag).first()
-
-                if(tag){
-
-                    const ids = tag.posts_id.split(",")
-                    ids.push(post.id)
-                    tag.posts_id = ids.toString()
-                    tag.posts_count = tag.posts_count + 1
-
-                }else{
-
-                    tag = new Tag
-                    tag.text = new_tag.trim()
-                    tag.posts_id = post.id.toString()
-                    tag.posts_count = 1
-
-                }
-
-                //try{
-
-                await tag.save()
-
-                //}catch(e){
-
-                        //return response.status(500).json({massage: "Error saving tag",error:e})
-
-                //}
-
-            }
-        }
-
-        //Checking each of the last set of tags to see if it is rmoved or not
-        for(let old_tag of tag_holder.split(",")){
-
-            if(!post.tags.includes(old_tag)){
-
-                const tag = await Tag.query().where("text", old_tag).first()
-                const posts_ids = tag.posts_id.split(",")
-                const id_index = posts_ids.indexOf(post.id.toString())
-                posts_ids.splice(id_index,1)
-
-                if(posts_ids.toString() == ""){
-
-                    tag.posts_id = null
-
-                }else{
-
-                    tag.posts_id = posts_ids.toString()
-
-                }
-                tag.posts_count = tag.posts_count - 1
-
-                //try{
-
-                    await tag.save()
-
-                //}catch(e){
-
-                    //return response.status(500).json({massage: "Error editing tags"})
-
-                //}
-
-            }
-        
-        }
 
         return response.status(200).json({massage: "Post edited successfully"})
 
@@ -355,20 +255,13 @@ class PostController {
         try{
 
             const posts = await Database.select("*").from('posts').where("user_id",user.id).orderBy("created_at",'desc')
-            const likes = await Database.select("*").from("likes").where("user_id",user.id).orderBy("created_at")
-            const liked_posts_ids = []
-
-            for(let like of likes){
-
-                liked_posts_ids.push(like.post_id)
-
-            }
+            const likes = await Database.select("post_id").from("likes").where("user_id",user.id).orderBy("created_at")
 
             for(let post of posts){
 
                 post.user_fullname = user.fullname
 
-                if(liked_posts_ids.includes(post.id)){
+                if(likes.includes(post.id)){
     
                     post.is_liked = true
     
@@ -376,19 +269,6 @@ class PostController {
     
                     post.is_liked = false
     
-                }
-
-                if(user.reading_list && user.reading_list != ""){
-
-                    if(user.reading_list.split(",").includes(post.id.toString())){
-
-                        post.is_saved = true
-    
-                    }else{
-    
-                        post.is_saved = false
-    
-                    }
                 }
     
             }
@@ -496,9 +376,25 @@ class PostController {
                 post.is_liked = false
 
             }
+
             post.comments = comments
             post.comment_count = counter
+
+            if(user.reading_list && user.reading_list != ""){
+
+                if(user.reading_list.split(",").includes(post.id.toString())){
+
+                    post.is_saved = true
+
+                }else{
+
+                    post.is_saved = false
+
+                }
+            }
+
             return response.status(200).json({massage: "Post loaded successfully",post: post})
+
 
         }catch(e){
 
