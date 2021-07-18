@@ -114,21 +114,20 @@ class PostController {
     }
 
     async showAll({response , auth}){
-       try{
+       //try{
             const current_user = await auth.getUser() //We need the user.id to find his/her likes
-            const likes = await Database.select("*").from('likes').where('user_id',current_user.id) //The like objects that user has made before
-            const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc') //getting all of the posts from the database
-            const liked_posts_ids = [] //The ids of the posts liked by the user
+            const likes = await Database.select("post_id").from('likes').where('user_id',current_user.id) //The like objects that user has made before
+            const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
 
-            for(let like of likes){
+            //for(let like of likes){
 
-                liked_posts_ids.push(like.post_id)
+                //liked_posts_ids.push(like.post_id)
 
-            }
+            //}
 
             for(let post of posts){
 
-                if(liked_posts_ids.includes(post.id)){ //If the id of the current posts exit in the ids of the liked posts by the user, set as liked
+                if(likes.includes(post.id)){ //If the id of the current posts exit in the ids of the liked posts by the user, set as liked
 
                     post.is_liked = true
 
@@ -140,13 +139,26 @@ class PostController {
 
                 const user = await User.find(post.user_id)
                 post.user_fullname = user.fullname
+
+                if(current_user.reading_list && current_user.reading_list != ""){
+                    
+                    if(current_user.reading_list.split(",").includes(post.id.toString())){
+
+                        post.is_saved = true
+
+                    }else{
+        
+                        post.is_saved = false
+
+                    }
+                }
             }   
 
-            response.status(200).json({posts: posts})
+            return response.status(200).json({posts: posts})
 
-        }catch(e){
+        //}catch(e){
 
-            const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
+            //const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
 
             for(let post of posts){ //Getting the user fullname here by query, because it might change while edit profile
 
@@ -157,7 +169,7 @@ class PostController {
 
             return response.status(200).json({posts: posts})
 
-         }
+        // }
 
     }
     async edit({request, response, params, auth}){
@@ -166,7 +178,7 @@ class PostController {
 
         if(!post){return response.status(404).json({massage: "Post not found"})}
 
-        if(post["user_id"] != user.id && user.role != "Admin" && user.role != "Manager"){return response.status(401).json({massage: "Only the manager, admin and creator of the post can edit this post"})}
+        if(post.user_id != user.id && user.role != "Admin" && user.role != "Manager"){return response.status(401).json({massage: "Only the manager, admin and creator of the post can edit this post"})}
 
         if(request.input('title')){post.title = request.input('title')}
 
@@ -205,73 +217,82 @@ class PostController {
             post.status = "Pending"
         }
 
-        try{
+        //try{
 
             await post.save()
 
-        }catch(e){
+        //}catch(e){
 
-            return response.status(500).json({massage: "Error editing post",error: e})
+            //return response.status(500).json({massage: "Error editing post",error: e})
 
-        }
+        //}
 
         //Checking each new tag to see if it was in the last set tags or not
-        for(let holder of post.tags.split(",")){
+        for(let new_tag of post.tags.split(",")){
 
-            if(!tag_holder.includes(holder)){
+            if(!tag_holder.includes(new_tag)){
 
-                let tag = await Tag.query().where("text",holder).first()
+                let tag = await Tag.query().where("text",new_tag).first()
 
                 if(tag){
 
                     const ids = tag.posts_id.split(",")
                     ids.push(post.id)
-                    tag.posts_id = ids.toString().substring(0,ids.toString().length + 1)
+                    tag.posts_id = ids.toString()
                     tag.posts_count = tag.posts_count + 1
 
                 }else{
 
                     tag = new Tag
-                    tag.text = holder.trim()
+                    tag.text = new_tag.trim()
                     tag.posts_id = post.id.toString()
                     tag.posts_count = 1
 
                 }
 
-                try{
+                //try{
 
                 await tag.save()
 
-                }catch(e){
+                //}catch(e){
 
-                        return response.status(500).json({massage: "Error saving tag",error:e})
+                        //return response.status(500).json({massage: "Error saving tag",error:e})
 
-                }
+                //}
 
             }
         }
 
         //Checking each of the last set of tags to see if it is rmoved or not
-        for(let holder of tag_holder.split(",")){
+        for(let old_tag of tag_holder.split(",")){
 
-            if(!post.tags.includes(holder)){
+            if(!post.tags.includes(old_tag)){
 
-                const tag = await Tag.query().where("text", holder).first()
-                const helper_var = tag["posts_id"].split(",")
-                const id_index = helper_var.indexOf(post.id.toString())
-                helper_var.splice(id_index,1)
-                tag.posts_id = helper_var.toString()
+                const tag = await Tag.query().where("text", old_tag).first()
+                const posts_ids = tag.posts_id.split(",")
+                const id_index = posts_ids.indexOf(post.id.toString())
+                posts_ids.splice(id_index,1)
+
+                if(posts_ids.toString() == ""){
+
+                    tag.posts_id = null
+
+                }else{
+
+                    tag.posts_id = posts_ids.toString()
+
+                }
                 tag.posts_count = tag.posts_count - 1
 
-                try{
+                //try{
 
                     await tag.save()
 
-                }catch(e){
+                //}catch(e){
 
-                    return response.status(500).json({massage: "Error editing tags"})
+                    //return response.status(500).json({massage: "Error editing tags"})
 
-                }
+                //}
 
             }
         
@@ -329,23 +350,11 @@ class PostController {
 
     }
     async showControlled({request, response, auth}){
-        //Here $ is used for variable posts to prevent pollution within other functions and declared a const post to used the $posts value outside of its block scope
         const user = await auth.getUser()
 
         try{
 
-            var $posts = await Database.select("*").from('posts').where("user_id",user.id).orderBy("created_at",'desc')
-
-        try{
-
-            const posts = $posts
-
-            for(let post of posts){
-
-                const user = await User.find(post.user_id)
-                post.user_fullname = user.fullname
-            }
-
+            const posts = await Database.select("*").from('posts').where("user_id",user.id).orderBy("created_at",'desc')
             const likes = await Database.select("*").from("likes").where("user_id",user.id).orderBy("created_at")
             const liked_posts_ids = []
 
@@ -354,34 +363,38 @@ class PostController {
                 liked_posts_ids.push(like.post_id)
 
             }
+
             for(let post of posts){
 
+                post.user_fullname = user.fullname
+
                 if(liked_posts_ids.includes(post.id)){
-
+    
                     post.is_liked = true
-
+    
                 }else{
-
+    
                     post.is_liked = false
-
+    
                 }
+
+                if(user.reading_list && user.reading_list != ""){
+
+                    if(user.reading_list.split(",").includes(post.id.toString())){
+
+                        post.is_saved = true
+    
+                    }else{
+    
+                        post.is_saved = false
+    
+                    }
+                }
+    
             }
 
             return response.status(200).json({massage: "Posts loaded succefully",posts: posts})
 
-            }catch(e){
-
-                const posts = $posts
-
-                for(let post of posts){
-
-                    post["is_liked"] = false
-
-                }
-
-                return response.status(200).json({massage: "Posts loaded succefully",posts: posts})
-
-            }
         }catch(e){
 
             return response.status(500).json({massage: "Error loading posts"})
@@ -447,18 +460,19 @@ class PostController {
         try{
             const user = await auth.getUser()
             const comments = await Database.select("*").from("comments").where("post_id",post.id).where("status","Approved").where("reply_to",null).orderBy("created_at")
-            let counter = comments.length
+            let counter = comments.length // for counting main comments and replying comments
 
             for(let comment of comments){
+
                 const replies = comment.replies ? comment.replies.split(",") : []
-                comment["replying_comments"] = []
+                comment.replying_comments = []
 
                 for(let i=0;i<replies.length;i++){
 
                     const partial_comment = await Comment.find(replies[i])
 
                     if(partial_comment && partial_comment.status == "Approved"){
-                    comment["replying_comments"].push(partial_comment)
+                    comment.replying_comments.push(partial_comment)
                     counter++
                     }
 
@@ -470,6 +484,7 @@ class PostController {
             if(!creator){return response.status(404).json({massage: "The creator of the post not found"})}
 
             post.user_fullname = creator.fullname
+            post.user_description = creator.description
             const like = await Like.query().where("post_id",post.id).where("user_id",user.id).first()
 
             if(like){
@@ -514,6 +529,7 @@ class PostController {
             if(!creator){return response.status(404).json({massage: "The creator of the post not found"})}
 
             post.user_fullname = creator.fullname
+            post.user_description = creator.description
             post.comments = comments
             post.comment_count = counter
             return response.status(200).json({massage: "Post loaded successfully",post: post})
