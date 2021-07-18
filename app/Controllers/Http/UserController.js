@@ -38,7 +38,7 @@ class UserController {
 
             const registered_user = await User.query().where("email",user.email).first()
             if(registered_user){
-                return response.status(500).json({massage: "User already registered"})
+                return response.status(204).json({massage: "User already registered"})
             }
 
             await user.save();
@@ -54,7 +54,7 @@ class UserController {
     async store({request, response, auth}){
         try{
             await auth.getUser()
-            response.status(200).json({massage: "Already loged in"})
+            response.status(204).json({massage: "Already loged in"})
         }catch(error){
         try{
             const token = await auth.attempt(request.input('email'), request.input('password'))
@@ -103,9 +103,7 @@ class UserController {
         user.fullname = request.input('fullname') || user.fullname
         user.email = request.input('email') || user.email
         user.password = request.input('password') || user.password
-        console.log(user.description)
         user.description = request.input('description') || user.description
-        console.log(user.description)
         if(request.file('pic')){
             const pic = request.file('pic', { //Getting the image from request
                 types: ['image'],

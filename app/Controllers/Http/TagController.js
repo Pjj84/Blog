@@ -20,10 +20,7 @@ class TagController {
         }
     }
     async posts({request, response}){
-        //try{
-            const query = request.get()
-            const text = query.tag
-            console.log(request.body)
+        try{    
             const tag = await Tag.query().where("text",request.body.tag).first()
             const posts_ids = tag && tag["posts_id"] && tag["posts_id"] != "" ? tag["posts_id"].split(",") : []
             for(let i=0;i<posts_ids.length;i++){
@@ -35,12 +32,12 @@ class TagController {
                 posts: posts,
                 tag: tag
             })
-        //}catch(e){
+        }catch(e){
             return response.status(500).json({
                 massage: "Error loading posts",
                 error: e
             })
-        //}
+        }
     }
     async all({response}){
         return response.json({tag: await Tag.all()})

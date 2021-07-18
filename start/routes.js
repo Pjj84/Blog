@@ -82,8 +82,4 @@ Route.post("/tagedposts","TagController.posts").as("tagedPosts")
 
 Route.get("/readinglist","ReadingListController.load").as("savedPosts").middleware("auth")
 
-Route.put("/save","ReadingListController.add").as("save").middleware("auth")
-
-Route.put("/unsave","ReadingListController.remove").as("unsave").middleware("auth")
-
-Route.get("/alltags","TagController.all")
+Route.put("/save","ReadingListController.save").as("save").middleware("auth")
