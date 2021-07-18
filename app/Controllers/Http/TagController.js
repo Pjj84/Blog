@@ -8,7 +8,7 @@ class TagController {
     async populars({response}){
         try{
 
-            const tags = await Tag.query().where("posts_count",">=","1").orderBy("posts_count","desc").fetch()
+            const tags = await Tag.query().orderBy("posts_count","desc").limit(4).fetch()
             return response.status(200).json({massage: "Tags loaded successfully",tags: tags})
 
         }catch(e){
