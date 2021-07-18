@@ -16,10 +16,6 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route');
 
-const Helpers = use('Helpers');
-
-const Drive = use('Drive');
-
 Route.on('/').render('welcome');
 
 Route.post('/register','UserController.create').as('register').middleware("guest")

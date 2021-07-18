@@ -8,80 +8,111 @@ class AdminController {
     async pendingPosts({response}){
         try{
         const posts = await Database.select("*").from('posts').whereNot("status","Approved").orderBy("created_at", "asc")
+
         for(let post of posts){
-            const user = await User.query().where("id",post["user_id"]).first()
-            post["user_fullname"] = user.fullname
+            const user = await User.query().where("id",post.user_id).first()
+            post.user_fullname = user.fullname
         }
+
         return response.status(200).json({
             massage: "Posts loaded succefully",
             posts: posts
         })
+
         }catch(e){
+
             return response.status(500).json({
                 massage: "Error loading posts",
                 error: e
             })
+
         }
     }
     async pendingComments({response}){
         try{
+
         const comments = await Database.select("*").from("comments").where("status","Pending").orderBy("created_at","asc")
+
         return response.status(200).json({
             massage: "Comments loaded succefully",
             comments: comments
         })
+
         }catch(e){
+
             return response.status(500).json({
                 massage: "Error loading posts and comments",
                 error: e
             })
+
         }
     }
     async approvePost({request, params, response}){
         try{
+
         const post = await Post.find(params.id)
+        
         if(!post){
             return response.status(404).json({massage: "Post not found"})
         }
+
         if(request.body.approvement != "Approved" && request.body.approvement != "Disapproved" && request.body.approvement != "Pending"){
+
             return response.status(422).json({
                 massage: "Unacceptable status"
             })
+
         }
-        post["status"] = request.body.approvement
+
+        post.status = request.body.approvement
         await post.save()
+
         return response.status(200).json({
             massage: "Post approved"
         })
+
         }catch(e){
+
         return response.status(500).json({
             massage: "Error approving post",
             error: e
         })
+
         }
     }
     async approveComment({request, params, response}){
         try{
+
         const comment = await Comment.find(params.id)
+
         if(!comment){
             return response.status(404).json({massage: "Comment not found"})
         }
+
         if(request.body.approvement != "Approved" && request.body.approvement != "Disapproved" && request.body.approvement != "Pending"){
+
             return response.status(422).json({
                 massage: "Unacceptable status"
             })
+
         }
-        comment["status"] = request.body.approvement
+
+        comment.status = request.body.approvement
         await comment.save()
+
         return response.status(200).json({
             massage: "Comment Approved"
         })
+
         }catch(e){
+
             return response.status(500).json({
                 massage: "Error approving comment",
                 error: e
             })
+
         }
+
     }
 }
 module.exports = AdminController
