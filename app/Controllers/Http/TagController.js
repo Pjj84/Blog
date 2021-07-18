@@ -7,40 +7,37 @@ const Database = use("Database")
 class TagController {
     async populars({response}){
         try{
+
             const tags = await Tag.query().where("posts_count",">=","1").orderBy("posts_count","desc").fetch()
-            return response.status(200).json({
-                massage: "Tags loaded successfully",
-                tags: tags
-            })
+            return response.status(200).json({massage: "Tags loaded successfully",tags: tags})
+
         }catch(e){
-            return response.status(500).json({
-                massage: "Error loading tags",
-                error: e
-            })
+
+            return response.status(500).json({massage: "Error loading tags",error: e})
+
         }
+
     }
     async posts({request, response}){
         try{    
+
             const tag = await Tag.query().where("text",request.body.tag).first()
-            const posts_ids = tag && tag["posts_id"] && tag["posts_id"] != "" ? tag["posts_id"].split(",") : []
+            const posts_ids = tag && tag.posts_id && tag.posts_id != "" ? tag.posts_id.split(",") : []
+
             for(let i=0;i<posts_ids.length;i++){
+
                 posts_ids[i] = parseInt(posts_ids[i])
+
             }
+
             const posts = await Post.query().whereIn("id", posts_ids).where("status","Approved").fetch()
-            return response.status(200).json({
-                massage: "Posts loaded successfully",
-                posts: posts,
-                tag: tag
-            })
+            return response.status(200).json({massage: "Posts loaded successfully",posts: posts,tag: tag})
+
         }catch(e){
-            return response.status(500).json({
-                massage: "Error loading posts",
-                error: e
-            })
+
+            return response.status(500).json({massage: "Error loading posts",error: e})
+
         }
-    }
-    async all({response}){
-        return response.json({tag: await Tag.all()})
     }
 }
 
