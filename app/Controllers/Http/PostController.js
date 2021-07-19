@@ -72,7 +72,6 @@ class PostController {
 
         }catch(e){
 
-            post.delete()
             return response.status(500).json({massage: "Error creating post",error: e})
 
         }
@@ -83,7 +82,18 @@ class PostController {
 
             if(tag){
 
-                const ids = tag["posts_id"].split(",")
+                let ids;
+
+                if(tag.posts_id == ""){
+
+                    ids = []
+
+                }else{
+
+                    ids = tag.posts_id.split(",")
+
+                }
+                
                 ids.push(post.id.toString())
                 tag["posts_id"] = ids.toString().substring(0,ids.toString().length + 1)
                 tag["posts_count"] = tag["posts_count"] + 1
@@ -118,10 +128,15 @@ class PostController {
             const current_user = await auth.getUser() //We need the user.id to find his/her likes
             const likes = await Database.select("post_id").from('likes').where('user_id',current_user.id) //The like objects that user has made before
             const posts = await Database.select("*").from('posts').where("status","Approved").orderBy("created_at",'desc')
+            const ids = []
+
+            for(let like of likes){
+                ids.push(like.post_id)
+            }
 
             for(let post of posts){
 
-                if(likes.includes(post.id)){ //If the id of the current posts exit in the ids of the liked posts by the user, set as liked
+                if(ids.includes(post.id)){ //If the id of the current posts exit in the ids of the liked posts by the user, set as liked
 
                     post.is_liked = true
 
@@ -216,13 +231,13 @@ class PostController {
 
         creator.posts_count = creator.posts_count - 1
 
-        for(let holder of post.tags.split(",")){
-
-            const tag = await Tag.query().where("text", holder).first()
-            const helper_var = tag.posts_id.split(",")
-            const id_index = helper_var.indexOf(post.id.toString())
-            helper_var.splice(id_index,1)
-            tag.posts_id = helper_var.toString()
+        for(let old_tag of post.tags.split(",")){
+            
+            const tag = await Tag.query().where("text", old_tag).first()
+            const array = tag.posts_id.split(",")
+            const id_index = array.indexOf(post.id.toString())
+            array.splice(id_index,1)
+            tag.posts_id = array.toString()
             tag.posts_count = tag.posts_count - 1
 
             try{

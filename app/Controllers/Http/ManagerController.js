@@ -38,7 +38,10 @@ class ManagerController {
     async promote({request, params, response}){
 
         const user = await User.find(params.id)
+
         if(!user){return response.status(404).json({massage: "User not found"})}
+
+        if(user.role == "Manager"){return response.status(401).json({massage: "Can not promote a manager"})}
 
         try{
 
@@ -57,6 +60,8 @@ class ManagerController {
         const user = await User.find(params.id)
 
         if(!user){return response.status(404).json({massage: "User not found"})}
+
+        if(user.role == "Manager"){return response.status(401).json({massage: "Can not demote a manager"})}
 
         try{
 
